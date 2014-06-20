@@ -1,0 +1,781 @@
+"""
+sensortest.r2py -- Sensibility Testbed demo code
+
+Albert Rafetseder, Datenkugerl e.U., Austria
+Yanyan Zhuang, UBC, Canada
+
+Change log:
+
+v 0.0.1, 20140215 1400 YZ
+  Demo script to pull data from a phone 
+
+v 0.0.2, 20140521 1900 YZ
+  Demo script to pull data from a phone 
+  
+  Examples running this code:
+
+  1. To get all the sensor values:
+  startv2 sensortest.r2py 
+
+  2. User provide sensorname + method:
+  startv2 sensortest.r2py BatteryFacade batteryGetLevel
+
+  3. User provide sensorname + method + args (let phone vibrate 3 sec):
+  startv2 sensortest.r2py AndroidFacade vibrate 3000 
+
+  4. To specify those parameters in code instead of command line, 
+  facadelist = ['AndroidFacade']
+  method = ['vibrate']
+  argslist = [2000] 
+  TODO: Currently, both facadelist and method can only have one element.
+
+"""
+
+
+# This is the big "sensors" dict. Its entries are of form 
+# {FACADE1: {
+#    'initialize': sensor_description_methods_and_examples, 
+#    'deactivate': sensor_description_methods_and_examples,
+#    'use': {
+#       SENSOR1: sensor1_description_methods_and_examples,
+#       SENSOR2: sensor2_description_methods_and_examples,
+#       ... }
+#  },
+#  FACADE2: { 
+#    ....
+#           }
+# }
+#
+# Please provide meaningful 'example args' to the sensors so we can 
+# showcase them properly!
+
+# constants or global variables
+grace_period = 1
+AP_PORT = 45678
+mycontext['id'] = 0
+
+sensors = {
+'AndroidFacade': { # See http://www.mithril.com.au/android/doc/AndroidFacade.html
+  'use': {
+    'environment': {
+      'usage': 'Returns a string of various useful environment details.',
+      'arguments': 'None.',
+      'returns': 'String',
+      'example args': None,
+      'example returned values': '{"error":null,"id":200000,"result":{"appcache":"\/data\/data\/com.googlecode.android_scripting\/cache","download":"\/mnt\/sdcard\/Download","TZ":{"id":"America\/Los_Angeles","offset":-28800000,"display":"Pacific Standard Time"},"SDK":"15","sdcard":{"blocksize":4096,"blockcount":3357270,"availblocks":3321917}}}'},
+
+    'getIntent': {
+      'usage': 'Returns the intent that launched the script.',
+      'arguments': 'None.',
+      'returns': 'String',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":{"action":"com.googlecode.android_scripting.action.LAUNCH_SERVER","categories":null,"flags":268435456,"classname":"com.googlecode.android_scripting.activity.ScriptingLayerService","packagename":"com.googlecode.android_scripting","extras":{"com.googlecode.android_scripting.extra.USE_SERVICE_PORT":45678}}}'}, 
+    
+    'makeToast': {
+      'usage': 'Returns the intent that launched the script.',
+      'arguments': 'message (String).',
+      'returns': 'None',
+      'example args': ['Happy holidays!'],
+      'example returned values': '{"error":null,"id":0,"result":null}'},
+
+    'vibrate': {
+      'usage': 'Returns the intent that launched the script.',
+      'arguments': 'Integer (optional, in ms).',
+      'returns': 'None',
+      'example args': [3000],
+      'example returned values': '{"error":null,"id":0,"result":null}'} } # End use
+}, # End Android
+
+'ApplicationFacade': { # See http://www.mithril.com.au/android/doc/ApplicationManagerFacade.html
+  'use': {
+    'getLaunchableApplications': { 
+      'usage': 'Returns a list of all launchable application class names.',
+      'arguments': 'None',
+      'returns': 'String',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":{"Voice Dialer":"com.android.voicedialer.VoiceDialerActivity",...}}'},
+
+    'getRunningPackages': {
+      'usage': 'Returns a list of packages running activities or services.',
+      'arguments': 'None',
+      'returns': 'String',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":["com.google.android.location","at.univie.sensorium","android","com.android.providers.contacts", ...]}'}  } # End use
+
+}, # End Application
+
+'BatteryFacade': { # See http://www.mithril.com.au/android/doc/BatteryManagerFacade.html
+  'initialize': {
+    'batteryStartMonitoring': {
+      'usage': 'Starts tracking battery events. Call this before attempting any of the other battery-related calls.', 
+      'arguments': 'None.',
+      'returns': '{"error":null,"id":0,"result":null}',
+      'example args': None,
+      'example returned values': ''} },
+
+  'deactivate': { 
+    'batteryStopMonitoring': {
+      'usage': 'Stops tracking battery events. Call this after you are done with all of your other battery-related calls.', 
+      'arguments': 'None.',
+      'returns': 'null',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":null}'} },
+
+  'use': {
+    'batteryCheckPresent': {
+      'usage': 'Returns the most recently received battery presence data.',
+      'arguments': 'None.',
+      'returns': 'Boolean',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":true}'}, 
+
+    'batteryGetHealth': {
+      'usage': 'Returns the most recently received battery health data.',
+      'arguments': 'None.',
+      'returns': 'Interger: 1 - unknown; 2 - good; 3 - overheat; 4 - dead; 5 - over voltage; 6 - unspecified failure.',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":2}'},
+
+    'batteryGetLevel': {
+      'usage': 'Returns the most recently received battery level (percentage).',
+      'arguments': 'None.',
+      'returns': 'Integer',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":99}'}, 
+
+    'batteryGetPlugType': {
+      'usage': 'Returns the most recently received plug type data.',
+      'arguments': 'None.',
+      'returns': 'Interger: -1 - unknown; 0 - unplugged; 1 - power source is an AC charger; 2 - power source is a USB port.',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":2}'},
+
+    'batteryGetStatus': {
+      'usage': 'Returns the most recently received battery status data.',
+      'arguments': 'None.',
+      'returns': 'Interger: 1 - unknown; 2 - charging; 3 - discharging; 4 - not charging; 5 - full.',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":3}'},
+
+    'batteryGetTechnology': {
+      'usage': 'Returns the most recently received battery technology data.',
+      'arguments': 'None.',
+      'returns': 'String.',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":"Li-ion"}'},
+
+    'readBatteryData': {
+      'usage': 'Returns the most recently recorded battery data (all data).',
+      'arguments': 'None.',
+      'returns': 'String.',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":{"level":98,"technology":"Li-ion","status":3,"voltage":4140,"plugged":2,"battery_present":true,"health":2,"temperature":269}}'}
+  }
+}, # End Battery
+
+'BluetoothFacade': { # See http://www.mithril.com.au/android/doc/BluetoothFacade.html
+  'initialize': {
+    'bluetoothDiscoveryStart': {
+      'usage': 'Start the remote device discovery process.', 
+      'arguments': 'None.',
+      'returns': '(Boolean) true on success, false on error.',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":true}'} },
+
+  'deactivate': { 
+    'bluetoothDiscoveryCancel': {
+      'usage': 'Cancel the current device discovery process.', 
+      'arguments': 'None.',
+      'returns': '(Boolean) true on success, false on error.',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":true}'} },
+
+  'use': {
+    'checkBluetoothState': {
+      'usage': 'Checks Bluetooth state',
+      'arguments': 'None',
+      'returns': '(Boolean) True if Bluetooth is enabled',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":true}'},
+
+    'bluetoothIsDiscovering': {
+      'usage': 'Return true if the local Bluetooth adapter is currently in the device discovery process.',
+      'arguments': 'None',
+      'returns': '(Boolean) True if Bluetooth is in the device discovery process',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":true}'},
+
+    'bluetoothGetLocalAddress': {
+      'usage': 'Returns the hardware address of the local Bluetooth adapter.',
+      'arguments': 'None',
+      'returns': '(String) The hardware address of the local Bluetooth adapter',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":"60:A1:0A:xx:xx:xx"}'},
+
+    'bluetoothGetLocalName': {
+      'usage': 'Gets the Bluetooth Visible device name.',
+      'arguments': 'None',
+      'returns': '(String) The Bluetooth Visible device name',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":"GT-P1000"}'},
+
+    'bluetoothSetLocalName': {
+      'usage': 'Sets the Bluetooth Visible device name.',
+      'arguments': '(String) New local name',
+      'returns': 'returns True on success',
+      'example args': ['Giraffe!'],
+      'example returned values': '{"error":null,"id":0,"result":true}'},
+
+    'bluetoothGetScanMode': {
+      'usage': 'Gets the scan mode for the local dongle.',
+      'arguments': 'None',
+      'returns': '(Interger) Return values: -1 when Bluetooth is disabled; 0 if non discoverable and non connectable; 1 connectable non discoverable; 3 connectable and discoverable.',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":true}'},
+    } # End use
+
+}, # End Bluetooth
+
+# Camera doesn't work properly!
+
+
+'ContactsFacade': { # See http://www.mithril.com.au/android/doc/ContactsFacade.html
+  'use': {
+    'contactsGet': {
+      'usage': 'Returns a List of all contacts.',
+      'arguments': 'attributes (JSONArray) (optional) ',
+      'returns': '(List) a List of contacts as Maps.',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":[{"_id":"1","primary_email":"6"},{"_id":"2","primary_email":"13"},{"_id":"3","primary_email":"20","name":"real name"},...]}'},
+
+    'contactsGetAttributes': {
+      'usage': 'Returns a List of all possible attributes for contacts.',
+      'arguments': 'None',
+      'returns': '(List) of all possible attributes for contacts.',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":["times_contacted","custom_ringtone","primary_organization","phonetic_name","status","label","number","type","mode","last_time_contacted","display_name","im_handle","_id","number_key","starred","primary_email","name","primary_phone","im_account","notes","im_protocol","send_to_voicemail"]}'},
+
+    'contactsGetById': {
+      'usage': 'Returns contacts by ID.',
+      'arguments': 'id (Integer)',
+      'returns': 'contact info',
+      'example args': [10],
+      'example returned values': '{"error":null,"id":0,"result":{"_id":"30","primary_email":"213","name":"real name"}}'},
+
+    'contactsGetCount': {
+      'usage': 'Returns the number of contacts.',
+      'arguments': 'None',
+      'returns': 'Number of contacts',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":344}'},
+
+    'contactsGetIds': {
+      'usage': 'Returns a List of all contact IDs.',
+      'arguments': 'None',
+      'returns': 'List of all contact IDs',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":[1,2,3,4,5,.....,344]}'},
+  } # End use
+}, # End CommonIntents
+
+
+'LocationFacade': {
+  'initialize': {
+    'startLocating': {
+      'usage': 'Starts collecting location data.', 
+      'arguments': 'Optional: minDistance (Integer) minimum time between updates in milliseconds (default=60000); minUpdateDistance (Integer) minimum distance between updates in meters (default=30)',
+      'returns': 'null.',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":null}'} },
+
+  'deactivate': { 
+    'stopLocating': {
+      'usage': 'Stops collecting location data.', 
+      'arguments': 'None.',
+      'returns': 'null.',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":null}'} },
+
+  'use': {
+    'locationProviders': {
+      'usage': 'Returns availables providers on the phone.',
+      'arguments': 'None',
+      'returns': 'availables providers on the phone',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":["network","pasive","gps"]}'},
+
+    'locationProviderEnabled': {
+      'usage': 'Ask if provider is enabled.',
+      'arguments': '(String) Name of location provider',
+      'returns': 'true if provider is enabled',
+      'example args': ["network"],
+      'example returned values': '{"error":null,"id":0,"result":true}'},
+
+    'readLocation': {
+      'usage': 'Returns the current location as indicated by all available providers.',
+      'arguments': 'None',
+      'returns': 'the current location as indicated by all available providers',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":{"network":{"time":1386301597691,"speed":0,"altitude":0,"bearing":0,"provider":"network","longitude":-123.2488612,"latitude":49.2611662,"accuracy":20}}}'},
+
+    'getLastKnownLocation': {
+      'usage': 'Returns the last known location of the device.',
+      'arguments': '(Map) A map of location information by provider',
+      'returns': 'the last known location of the device',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":{"passive":{"time":1386292156814,"speed":0,"altitude":0,"bearing":0,"provider":"network","longitude":-123.2485678,"latitude":49.2610633,"accuracy":36},"gps":{"time":1386229651000,"speed":1.634053349494934,"altitude":115,"bearing":235.37033081054688,"provider":"gps","longitude":-123.24900053036713,"latitude":49.26100681798307,"accuracy":40},"network":{"time":1386292156814,"speed":0,"altitude":0,"bearing":0,"provider":"network","longitude":-123.2485678,"latitude":49.2610633,"accuracy":36}}}'},
+
+    'geocode': {
+      'usage': 'Returns a list of addresses for the given latitude and longitude. .',
+      'arguments': 'latitude (Double), longitude (Double), maxResults (Integer) maximum number of results (default=1)',
+      'returns': '(List) A list of addresses',
+      'example args': [49.2610633, -123.2485678],
+      'example returned values': '{"error":null,"id":0,"result":[{"locality":"Vancouver","admin_area":"British Columbia","thoroughfare":"Main Mall","feature_name":"2366","country_code":"CA","country_name":"Canada","postal_code":"V6T 1Z4"}]}'},
+  }
+}, # End Location
+
+
+'PreferencesFacade': { # See http://www.mithril.com.au/android/doc/PreferencesFacade.html
+  'use': {
+    'prefGetAll': {
+      'usage': 'Get list of Shared Preference Values.',
+      'arguments': 'filename (String) Desired preferences file. If not defined, uses the default Shared Preferences. (optional)',
+      'returns': '(Map) Map of key,value',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":{"present_usagetracking":false,"usagetracking":true}}'},
+
+    'prefGetValue': {
+      'usage': 'Read a value from shared preferences.',
+      'arguments': 'key (String), filename (String) Desired preferences file. If not defined, uses the default Shared Preferences. (optional)',
+      'returns': 'a value from shared preferences',
+      'example args': ["usagetracking"],
+      'example returned values': '{"error":null,"id":0,"result":true}'},
+
+  } # End use
+},  # End PreferencesFacade
+
+
+'SensorFacade': { # See http://www.mithril.com.au/android/doc/SensorManagerFacade.html
+  'initialize': {
+    'startSensingTimed': {
+      'usage': 'Starts recording sensor data to be available for polling.', 
+      'arguments': 'sensorNumber (Integer) 1 = All, 2 = Accelerometer, 3 = Magnetometer and 4 = Light; delayTime (Integer) Minimum time between readings in milliseconds',
+      'returns': 'null.',
+      'example args': [1, 30],
+      'example returned values': '{"error":null,"id":0,"result":null}'} },
+
+  'deactivate': { 
+    'stopSensing': {
+      'usage': 'Stops collecting senosr data.', 
+      'arguments': 'None.',
+      'returns': 'null.',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":null}'} },
+
+  'use': {
+    'readSensors': {
+      'usage': 'Returns the most recently recorded sensor data.', 
+      'arguments': 'None.',
+      'returns': 'the most recently recorded sensor data',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":{"time":1.386305361412E9,"roll":-0.034543427079916,"zforce":9.959879,"yforce":-0.842759,"yMag":164.9375,"xMag":-3.1875,"azimuth":0.005331491399556398,"xforce":0.3439138,"zMag":-67.75,"pitch":0.08443046659231186,"accuracy":3}}'},
+    
+    'sensorsGetAccuracy': {
+      'usage': 'Returns the most recently received accuracy value.', 
+      'arguments': 'None.',
+      'returns': 'null.',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":3}'},
+
+    'sensorsGetLight': {
+      'usage': 'Returns the most recently received light value.', 
+      'arguments': 'None.',
+      'returns': 'null.',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":null}'},
+
+    'sensorsReadAccelerometer': {
+      'usage': 'Returns the most recently received accelerometer values.', 
+      'arguments': 'None.',
+      'returns': '(List) a List of Floats [(acceleration on the) X axis, Y axis, Z axis].',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":[0.3830723,-0.8036005,10.036493]}'},
+
+    'sensorsReadMagnetometer': {
+      'usage': 'Returns the most recently received magnetic field value.', 
+      'arguments': 'None.',
+      'returns': '(List) a List of Floats [(magnetic field value for) X axis, Y axis, Z axis].',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":[29.5,206.875,-119.625]}'},
+
+    'sensorsReadOrientation': {
+      'usage': 'Returns the most recently received orientation value.', 
+      'arguments': 'None.',
+      'returns': '(List) a List of Doubles [azimuth, pitch, roll].',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":[-0.17154279351234436,0.080450139939785,-0.03844258934259415]}'},
+  }
+}, # End Sensor
+
+'SettingsFacade': {
+  'use': {
+    'checkAirplaneMode': {
+      'usage': 'Checks the airplane mode setting.', 
+      'arguments': 'None.',
+      'returns': '(Boolean) True if airplane mode is enabled.',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":true}'},
+
+    'checkRingerSilentMode': {
+      'usage': 'Checks the ringer silent mode setting.', 
+      'arguments': 'None.',
+      'returns': '(Boolean) True if ringer silent mode is enabled',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":true}'},
+
+    'checkScreenOn': {
+      'usage': 'Checks if the screen is on or off (requires API level 7).', 
+      'arguments': 'None.',
+      'returns': '(Boolean) True if the screen is currently on',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":true}'},
+
+    'getMaxMediaVolume': {
+      'usage': 'Returns the maximum media volume.', 
+      'arguments': 'None.',
+      'returns': 'the maximum media volume',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":15}'}, 
+
+    'getMaxRingerVolume': {
+      'usage': 'Returns the maximum ringer volume.', 
+      'arguments': 'None.',
+      'returns': 'the maximum ringer volume',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":7}'},
+
+    'getMediaVolume': {
+      'usage': 'Returns the current media volume.', 
+      'arguments': 'None.',
+      'returns': 'the current media volume',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":11}'},
+
+    'getRingerVolume': {
+      'usage': 'Returns the current ringer volume.', 
+      'arguments': 'None.',
+      'returns': 'the current ringer volume',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":0}'},
+
+    'getScreenBrightness': {
+      'usage': 'Returns the screen backlight brightness.', 
+      'arguments': 'None.',
+      'returns': '(Integer) the current screen brightness between 0 and 255',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":100}'},
+
+    'getScreenTimeout': {
+      'usage': 'Returns the current screen timeout in seconds.', 
+      'arguments': 'None.',
+      'returns': '(Integer) the current screen timeout in seconds.',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":60}'},
+
+    'getVibrateMode': {
+      'usage': 'Checks Vibration setting. If ringer=true then query Ringer setting, else query Notification setting.', 
+      'arguments': 'ringer (Boolean) (optional).',
+      'returns': 'the current vibration setting',
+      'example args': ['true'],
+      'example returned values': '{"error":null,"id":0,"result":true}'},
+  }
+}, # End
+
+'SignalStrengthFacade': { # See http://www.mithril.com.au/android/doc/SignalStrengthFacade.html
+  'initialize': {
+    'startTrackingSignalStrengths': {
+      'usage': 'Starts tracking signal strengths.', 
+      'arguments': 'None.',
+      'returns': 'null',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":null}'} },
+
+  'deactivate': { 
+    'stopTrackingSignalStrengths': {
+      'usage': 'Stops tracking signal strength.', 
+      'arguments': 'None.',
+      'returns': 'null',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":null}'} },
+
+  'use': {
+    'readSignalStrengths': {
+      'usage': 'Returns the current signal strengths.', 
+      'arguments': 'None.',
+      'returns': '(Bundle) A map of gsm_signal_strength',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":{"gsm_signal_strength":8,"evdo_ecio":-1,"gsm_bit_error_rate":-1,"cdma_ecio":-1,"cdma_dbm":-1,"evdo_dbm":-1}}'}
+  }
+}, # End SignalStrength
+
+
+'ToneGeneratorFacade': { # See http://www.mithril.com.au/android/doc/ToneGeneratorFacade.html
+  'use': {
+    'generateDtmfTones': {
+      'usage': 'Generate DTMF tones for the given phone number.', 
+      'arguments': 'phoneNumber (String), toneDuration (Integer) duration of each tone in milliseconds (default=100).',
+      'returns': 'null',
+      'example args': ['32123332223993212333322321', 300],
+      'example returned values': '{"error":null,"id":0,"result":null}'
+}}
+}, # End ToneGeneratorFacade
+
+
+'WifiFacade': {
+'initialize': {
+    'wifiStartScan': {
+      'usage': 'Starts a scan for Wifi access points.', 
+      'arguments': 'None.',
+      'returns': '(Boolean) True if the scan was initiated successfully.',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":null}'} },
+   
+   # wifi does not have deactivate
+
+  'use': {
+    'checkWifiState': {
+      'usage': 'Checks Wifi state.', 
+      'arguments': 'None.',
+      'returns': '(Boolean) True if Wifi is enabled.',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":true}'},
+
+    'wifiGetConnectionInfo': {
+      'usage': 'Returns information about the currently active access point.', 
+      'arguments': 'None.',
+      'returns': 'information about the currently active access point',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":{"mac_address":"60:a1:0a:90:e9:d8","bssid":"18:ef:63:fc:dc:00","ip_address":1281342848,"hidden_ssid":false,"network_id":0,"link_speed":26,"supplicant_state":"completed","ssid":"ubcsecure","rssi":-60}}'},
+
+    'wifiGetScanResults': {
+      'usage': 'Returns the list of access points found during the most recent Wifi scan.', 
+      'arguments': 'None.',
+      'returns': 'the list of access points found during the most recent Wifi scan.',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":[{"ssid":"ubcvisitor","bssid":"18:ef:63:fc:dc:01","capabilities":"[ESS]","level":-79,"frequency":2462},{"ssid":"ubcsecure","bssid":"18:ef:63:fd:1d:f0","capabilities":"[WPA2-EAP-CCMP][ESS]","level":-79,"frequency":2462},{"ssid":"eduroam","bssid":"18:ef:63:fc:dc:02","capabilities":"[WPA-EAP-TKIP][WPA2-EAP-CCMP][ESS]","level":-75,"frequency":2462},...]}'},
+  }
+}, # End WifiFacade
+
+'TextToSpeechFacade': { # See http://www.mithril.com.au/android/doc/TextToSpeechFacade.html
+  'use': {
+    'ttsSpeak': {
+      'usage': 'Speaks the provided message via TTS.',
+      'arguments': 'message (String)',
+      'returns': 'null',
+      'example args': ['Annoying demo!'],
+      'example returned values': '{"error":null,"id":0,"result":null}'}, 
+
+    'ttsIsSpeaking': {
+      'usage': 'Returns True if speech is currently in progress.',
+      'arguments': 'None.',
+      'returns': 'Boolean',
+      'example args': None,
+      'example returned values': '{"error":null,"id":0,"result":false}'} }
+ 
+}, # End TextToSpeech
+
+} # End of big sensors dict
+
+
+
+def usage():
+  log("""
+test_sl4a_sensor.repy
+  -- check out SL4A's different ``Facade''s into Android sensors.
+  
+Usage:
+  1) On your shell, specify the AP_PORT for SL4A to listen on, e.g.
+    export AP_PORT=45678
+  2) Start SL4A in server mode using am, the Activity Manager, on that port:
+    (CAUTION: That's one long line!)
+    am start -a com.googlecode.android_scripting.action.LAUNCH_SERVER -n com.googlecode.android_scripting/.activity.ScriptingLayerServiceLauncher --ei com.googlecode.android_scripting.extra.USE_SERVICE_PORT $AP_PORT
+  3) Finally, run this program and supply it with the AP_PORT:
+
+    python repy.py restrictionsfile test_sl4a_sensor.repy [ $AP_PORT \ 
+      [ FACADE [ SENSOR [ ARGUMENT_LIST ]]]]
+
+Omitting AP_PORT and further options at all lists this usage information, and 
+  all Facades and sensor methods I know.
+Omitting FACADE demoes (i.e. tests with some exemplary default arguments) 
+  all sensor methods of all facades I know.
+With any other FACADE arg, demo all of the sensor methods of this facade.
+With both FACADE and SENSOR, demo that sensor method with default call 
+  arguments.
+Given FACADE and SENSOR plus any additional arguments making up the 
+  ARGUMENT_LIST, test exactly that sensor method with exactly those args.
+  Initialization and deactivation methods will be called automatically 
+  as required.
+
+""")
+
+
+
+def send_rpc_request(socket_object, method_name, parameter_list):
+  # Sanitize the parameters, None becomes an empty list
+  parameter_list = parameter_list or []
+  json_request_string = '{"params": ' + str(parameter_list) + ', "id": ' + \
+    str(mycontext['id']) + ', "method": "' + \
+    str(method_name) + '"}\n'
+
+  mycontext['id'] += 1
+
+  bytes_sent = 0                                                              
+  while bytes_sent<len(json_request_string):
+    sendstring = json_request_string[bytes_sent:]
+    bytes_sent += socket_object.send(sendstring)
+    #log(sendstring)
+
+
+
+def get_rpc_response(socket_object, timeout=10):
+  received_string = ""
+  time_started = getruntime()
+  while getruntime() < time_started+timeout:
+    try:
+      chunk = socket_object.recv(1024)
+      received_string += chunk
+    except SocketWouldBlockError:
+      if received_string != "":
+        break
+      pass
+    except SocketClosedRemote:
+      pass
+  
+  return received_string
+
+
+
+def get_connectionport():
+  mycontext['ap_port'] = AP_PORT
+  return mycontext['ap_port']
+
+
+def getconnection(ap_port):
+  ports = list(getresources()[0]['connport'])
+  
+  for port in ports:
+    port = int(port) 
+    try:
+      sl4a_socket = openconnection("127.0.0.1", ap_port, "127.0.0.1", port, 5)
+      log("Using port", port, "to get sensor data.\n")
+      return sl4a_socket
+    except Exception as e:
+      log("Using port", port, "had a problem:", str(e), '\n')
+      continue
+
+  log("No ports available.\n")
+  exitall()
+
+
+def parse_argument(callargs):
+
+  facadelist = [] # List of facades to work through
+  method = None # User-specified method to demo (if any)
+  argslist = [] # User-specified argument list (if any)
+
+  if len(callargs) == 0: # No Facade etc. was specified, demo them all
+    facadelist = sensors.keys()
+  elif len(callargs) == 1: # Demo the specified Facade
+    facadelist = [callargs[0]]
+    if facadelist[0] not in sensors.keys():
+      usage()
+      log("\nSorry, I don't know the Facade you specified.\n")
+      exitall()
+  elif len(callargs) >= 2: # Demo one specific sensor method (possibly w/args)
+    facadelist = [callargs[0]]
+    method = [callargs[1]]
+    if facadelist[0] not in sensors.keys() or \
+      method[0] not in sensors[facadelist[0]]["use"]:
+      usage()
+      log("\nSorry, I don't know the Facade or sensor method you specified.\n")
+      exitall()
+    # Add any remaining arguments to the argslist
+    argslist = callargs[2:]
+
+  return (facadelist, method, argslist)
+
+
+def request_data(facadelist, method, argslist, sl4a_socket):
+
+  sensor_data = []
+
+  for facade in facadelist:
+    # Initialize if required
+    if "initialize" in sensors[facade].keys():
+      init_method = sensors[facade]["initialize"].keys()[0]
+      init_args = sensors[facade]["initialize"][init_method]["example args"]
+      #log("Initializing " + facade + "...")
+      send_rpc_request(sl4a_socket, init_method, init_args)
+      sleep(grace_period)
+      response = get_rpc_response(sl4a_socket)
+      #log("-- Done, returned " + response + "\n")
+
+    # Perform the requested method (or all of them)
+    # if method is neither None nor []: methodlist = method
+    # else: methodlist = that subsubdict's keys
+    methodlist = method or sensors[facade]["use"].keys()
+    #log("Time for", methodlist, "\n")
+    for method in methodlist:
+      args = argslist or sensors[facade]["use"][method]["example args"]
+      log("Performing " + method + ".\n")
+      send_rpc_request(sl4a_socket, method, args)
+      response = get_rpc_response(sl4a_socket)
+      sensor_data.append(response.strip())
+      #log("-- Done, returned " + response + "\n")
+      sleep(grace_period)
+
+    # Finally, disarm the facade again.
+    if "deactivate" in sensors[facade].keys():
+      init_method = sensors[facade]["deactivate"].keys()[0]
+      init_args = sensors[facade]["deactivate"][init_method]["example args"]
+      #log("Deactivating " + facade + "...")
+      send_rpc_request(sl4a_socket, init_method, init_args)
+      sleep(grace_period)
+      response = get_rpc_response(sl4a_socket)
+      #log("-- Done, returned " + response + "\n")
+
+    # This is only required to "forget" methods of the current facade 
+    # in demo-all mode; otherwise method would we would contain the 
+    # methods of the past facade and try them with the next facade 
+    # (which won't work.)
+    method = None
+
+  return sensor_data
+
+
+
+# parse the input arguments
+facadelist, method, argslist = parse_argument(callargs)
+ap_port = get_connectionport()
+
+# get a connection to communicate with sensors
+sensor_socket = getconnection(ap_port)
+
+# if user prefers to define sensor/method/arg in code, not command line: 
+# facadelist = ['AndroidFacade']
+# method = ['vibrate']
+# argslist = [2000] 
+# TODO: Currently, both facadelist and method can only have one element.
+
+# get sensor data
+sensor_data = request_data(facadelist, method, argslist, sensor_socket)
+
+# parse returned data and print to screen
+for data in sensor_data:
+  parsed = json_parse(data)
+  log("sensor data: ", parsed['result'], '\n')
+  log("error: ", parsed['error'], '\n')
+  log('\n')
+
+# close communication
+sensor_socket.close()
