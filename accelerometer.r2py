@@ -23,16 +23,20 @@ sensor_socket = getconnection(port)
 
 # define sensor/method/arg in code: 
 request_data(sensor_socket, 'startSensingTimed', [1, 30])
+
+count = 0
+starttime = getruntime()
  
-while True:
+while count < 10000:
   try:
     sensor_data = request_data(sensor_socket, 'sensorsReadAccelerometer', []) 
-    sleep(2)
-
+    count = count + 1
   except Exception as e:
     log(str(e), '\n')
     request_data(sensor_socket, 'stopSensing', []) 
     sensor_socket.close()
     #raise
 
+duration = (getruntime() - starttime) / count
+log(str(duration))
 request_data(sensor_socket, 'stopSensing', [])
