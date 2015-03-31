@@ -105,6 +105,5 @@ def request_data(sl4a_socket, method, args):
     raise
   else:
     result = parsed['result']
-    log(str(method), "data: ", result, '\n')
     return result
 
