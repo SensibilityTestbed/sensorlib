@@ -1,0 +1,20 @@
+"""
+blueth.r2py -- Sensibility Testbed demo code
+
+Yanyan Zhuang, UBC, Canada
+
+Change log:
+
+v 0.0.1, 20150331 1400 YZ
+  Using sensor lib code to pull battery data from a phone 
+
+"""
+
+
+dy_import_module_symbols("sensorlib.r2py")
+
+# get a connection to communicate with sensors
+port = get_connectionport()
+sensor_socket = getconnection(port)
+
+log("state: " + str(request_data(sensor_socket, 'checkBluetoothState', [])))
