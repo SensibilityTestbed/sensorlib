@@ -1,0 +1,65 @@
+"""
+location.r2py -- Sensibility Testbed demo code
+
+Yanyan Zhuang, UBC, Canada
+
+Change log:
+
+v 0.0.1, 20150403 1400 YZ
+  Using sensor lib code to pull location data from a phone 
+
+"""
+
+
+dy_import_module_symbols("sensorlib.r2py")
+
+# get a connection to communicate with sensors
+port = get_connectionport()
+sensor_socket = getconnection(port)
+
+request_data(sensor_socket, 'startLocating', [])
+
+#provider = request_data(sensor_socket, 'locationProviders', []) 
+#log(provider + '\n')
+
+#provider = request_data(sensor_socket, 'locationProviderEnabled', ["network"])
+#log(provider + '\n')
+
+
+# try to read current location
+location_data = request_data(sensor_socket, 'readLocation', []) 
+
+# if location was not retrieved, keep trying
+while not location_data:
+  sleep(2)
+  location_data = request_data(sensor_socket, 'readLocation', [])
+
+providers = ["gps", "network", "passive"]
+for p in providers:
+  try:
+    location = location_data[p]
+    log("provider: " + p + '\n')
+    break
+  except Exception as e:
+    #log("key exception: " + str(e) + '\n')
+    continue
+
+coordinates = {"latitude": location["latitude"], "longitude": location["longitude"]}
+log("latitude: " + str(coordinates["latitude"]) + ", longitude: " + str(coordinates["longitude"]) + '\n')
+
+# return a list of addresses (1 address by default)
+address = request_data(sensor_socket, 'geocode', [coordinates["latitude"], coordinates["longitude"]])
+
+# take the first returned address
+address = address[0]
+
+postal = address["postal_code"]
+streetno = address["feature_name"]
+streetname = address["thoroughfare"]
+cityname = address["locality"]
+statename = address["admin_area"]
+countryname = address["country_name"]
+
+log(streetno + ' ' + streetname + ', ' + cityname + ', ' + statename + ', ' + countryname + ', ' + postal + '\n')
+
+request_data(sensor_socket, 'stopLocating', []) 
