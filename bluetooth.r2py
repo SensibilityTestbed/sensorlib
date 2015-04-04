@@ -18,3 +18,5 @@ port = get_connectionport()
 sensor_socket = getconnection(port)
 
 log("state: " + str(request_data(sensor_socket, 'checkBluetoothState', [])))
+
+sensor_socket.close()

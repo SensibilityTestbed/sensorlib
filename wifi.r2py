@@ -1,0 +1,29 @@
+"""
+wifi.r2py -- Sensibility Testbed demo code
+
+Yanyan Zhuang, UBC, Canada
+
+Change log:
+
+v 0.0.1, 20150403 1600 YZ
+  Using sensor lib code to pull wifi data from a phone 
+
+"""
+
+
+dy_import_module_symbols("sensorlib.r2py")
+
+# get a connection to communicate with sensors
+port = get_connectionport()
+sensor_socket = getconnection(port)
+
+log("state: " + str(request_data(sensor_socket, 'checkWifiState', [])) + '\n')
+
+connection_info = request_data(sensor_socket, 'wifiGetConnectionInfo', [])
+log("connection info: " + str(connection_info) + '\n')
+
+request_data(sensor_socket, 'wifiStartScan', [])
+wifi_data = request_data(sensor_socket, 'wifiGetScanResults', [])
+log("scan results: " + str(wifi_data) + '\n')
+
+sensor_socket.close()

@@ -22,7 +22,7 @@ port = get_connectionport()
 sensor_socket = getconnection(port)
 
 # define sensor/method/arg in code: 
-request_data(sensor_socket, 'startSensingTimed', [1, 30])
+request_data(sensor_socket, 'startSensingTimed', [1, 1])
 
 count = 0
 starttime = getruntime()
@@ -40,3 +40,4 @@ while count < 10000:
 duration = (getruntime() - starttime) / count
 log(str(duration))
 request_data(sensor_socket, 'stopSensing', [])
+sensor_socket.close()

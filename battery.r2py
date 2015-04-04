@@ -27,3 +27,4 @@ log("status: " + str(request_data(sensor_socket, 'batteryGetStatus', [])))
 log("tech: " + request_data(sensor_socket, 'batteryGetTechnology', []))
 
 request_data(sensor_socket, 'batteryStopMonitoring', [])
+sensor_socket.close()

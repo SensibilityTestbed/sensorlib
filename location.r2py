@@ -62,4 +62,8 @@ countryname = address["country_name"]
 
 log(streetno + ' ' + streetname + ', ' + cityname + ', ' + statename + ', ' + countryname + ', ' + postal + '\n')
 
+lastknown_location = request_data(sensor_socket, 'getLastKnownLocation', []) 
+log("last known location: " + str(lastknown_location) + '\n')
+
 request_data(sensor_socket, 'stopLocating', []) 
+sensor_socket.close()
