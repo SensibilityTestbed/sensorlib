@@ -52,6 +52,7 @@ address = request_data(sensor_socket, 'geocode', [coordinates["latitude"], coord
 
 # take the first returned address
 address = address[0]
+log(str(address) + '\n')
 
 postal = address["postal_code"]
 streetno = address["feature_name"]
