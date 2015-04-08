@@ -26,6 +26,13 @@ AP_PORT = 45678
 mycontext['id'] = 0
 
 
+class SensorException(RepyException):
+  """This exception gets raised when reading a sensor results in an error.
+  """
+  pass
+
+
+
 def usage():
   log("""
 Something went wrong in your code..
@@ -102,7 +109,7 @@ def request_data(sl4a_socket, method, args):
 
   if error != None:
     log("Something went wrong!\n")
-    raise
+    raise SensorException(error)
   else:
     result = parsed['result']
     return result
