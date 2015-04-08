@@ -11,20 +11,20 @@ v 0.0.1, 20150331 1400 YZ
 """
 
 
-sensorlib = dy_import_module_symbols("sensorlib.r2py")
+sensorlib = dy_import_module("sensorlib.r2py")
 
 # get a connection to communicate with sensors
-port = get_connectionport()
-sensor_socket = getconnection(port)
+port = sensorlib.get_connectionport()
+sensor_socket = sensorlib.getconnection(port)
 
-bluetooth_enabled = request_data(sensor_socket, 'checkBluetoothState', [])
+bluetooth_enabled = sensorlib.request_data(sensor_socket, 'checkBluetoothState', [])
 
 if bluetooth_enabled:
   log("bluetooth is enabled.", '\n')
-  scan_mode = request_data(sensor_socket, 'bluetoothGetScanMode', [])
+  scan_mode = sensorlib.request_data(sensor_socket, 'bluetoothGetScanMode', [])
   log("scan mode: " + str(scan_mode) + ' (Note -- 0: SCAN_MODE_NONE; 1: SCAN_MODE_CONNECTABLE; 3: SCAN_MODE_CONNECTABLE_DISCOVERABLE)\n')
 
-  local_name = request_data(sensor_socket, 'bluetoothGetLocalName', [])
+  local_name = sensorlib.request_data(sensor_socket, 'bluetoothGetLocalName', [])
   log("local name: " + local_name + '\n')
 else:
   log("bluetooth is NOT enabled. You may enable it in Settings.", '\n')

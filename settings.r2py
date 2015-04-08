@@ -11,20 +11,20 @@ v 0.0.1, 20150404 1400 YZ
 """
 
 
-dy_import_module_symbols("sensorlib.r2py")
+sensorlib = dy_import_module("sensorlib.r2py")
 
 # get a connection to communicate with sensors
-port = get_connectionport()
-sensor_socket = getconnection(port)
+port = sensorlib.get_connectionport()
+sensor_socket = sensorlib.getconnection(port)
 
-log("airplane mode: " + str(request_data(sensor_socket, 'checkAirplaneMode', [])) + '\n')
-log("ringer silent mode: " + str(request_data(sensor_socket, 'checkRingerSilentMode', [])) + '\n')
-log("screen on: " + str(request_data(sensor_socket, 'checkScreenOn', [])) + '\n')
-log("max media volume: " + str(request_data(sensor_socket, 'getMaxMediaVolume', [])) + '\n')
-log("current media volume: " + str(request_data(sensor_socket, 'getMediaVolume', [])) + '\n')
-log("max ringer volume: " + str(request_data(sensor_socket, 'getMaxRingerVolume', [])) + '\n')
-log("current ringer volume: " + str(request_data(sensor_socket, 'getRingerVolume', [])) + '\n')
-log("screen brightness: " + str(request_data(sensor_socket, 'getScreenBrightness', [])) + '\n')
-log("screen timeout: " + str(request_data(sensor_socket, 'getScreenTimeout', [])) + '\n')
+log("airplane mode: " + str(sensorlib.request_data(sensor_socket, 'checkAirplaneMode', [])) + '\n')
+log("ringer silent mode: " + str(sensorlib.request_data(sensor_socket, 'checkRingerSilentMode', [])) + '\n')
+log("screen on: " + str(sensorlib.request_data(sensor_socket, 'checkScreenOn', [])) + '\n')
+log("max media volume: " + str(sensorlib.request_data(sensor_socket, 'getMaxMediaVolume', [])) + '\n')
+log("current media volume: " + str(sensorlib.request_data(sensor_socket, 'getMediaVolume', [])) + '\n')
+log("max ringer volume: " + str(sensorlib.request_data(sensor_socket, 'getMaxRingerVolume', [])) + '\n')
+log("current ringer volume: " + str(sensorlib.request_data(sensor_socket, 'getRingerVolume', [])) + '\n')
+log("screen brightness: " + str(sensorlib.request_data(sensor_socket, 'getScreenBrightness', [])) + '\n')
+log("screen timeout: " + str(sensorlib.request_data(sensor_socket, 'getScreenTimeout', [])) + '\n')
 
 sensor_socket.close()

@@ -1,18 +1,13 @@
 """
-sensortest.r2py -- Sensibility Testbed demo code
+gyroscope.r2py -- Sensibility Testbed demo code
 
 Yanyan Zhuang, UBC, Canada
 
 Change log:
 
-v 0.0.1, 20140215 1400 YZ
-  Using sensor lib code to pull data from a phone 
-  
-v 0.0.2, 20140304 1400 YZ
-  Removed facade and methodlists. Users need to start/stop 
-  certain sensing function by themselves, but this gives 
-  them more flexibility.
-
+v 0.0.1, 20150407 1600 YZ
+  Using sensor lib code to pull gyroscope data from a phone 
+ 
 """
 
 sensorlib = dy_import_module("sensorlib.r2py")
@@ -29,7 +24,7 @@ starttime = getruntime()
  
 while count < 100:
   try:
-    sensor_data = sensorlib.request_data(sensor_socket, 'sensorsReadAccelerometer', []) 
+    sensor_data = sensorlib.request_data(sensor_socket, 'sensorsReadOrientation', []) 
     count = count + 1
   except Exception as e:
     log(str(e), '\n')

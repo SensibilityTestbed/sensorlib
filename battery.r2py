@@ -11,20 +11,20 @@ v 0.0.1, 20150331 1400 YZ
 """
 
 
-dy_import_module_symbols("sensorlib.r2py")
+sensorlib = dy_import_module("sensorlib.r2py")
 
 # get a connection to communicate with sensors
-port = get_connectionport()
-sensor_socket = getconnection(port)
+port = sensorlib.get_connectionport()
+sensor_socket = sensorlib.getconnection(port)
 
-request_data(sensor_socket, 'batteryStartMonitoring', [])
+sensorlib.request_data(sensor_socket, 'batteryStartMonitoring', [])
 
-log("present: " + str(request_data(sensor_socket, 'batteryCheckPresent', [])))
-log("helth: " + str(request_data(sensor_socket, 'batteryGetHealth', [])))
-log("level: " + str(request_data(sensor_socket, 'batteryGetLevel', [])))
-log("plug type: " + str(request_data(sensor_socket, 'batteryGetPlugType', [])))
-log("status: " + str(request_data(sensor_socket, 'batteryGetStatus', [])))
-log("tech: " + request_data(sensor_socket, 'batteryGetTechnology', []))
+log("present: " + str(sensorlib.request_data(sensor_socket, 'batteryCheckPresent', [])) + '\n')
+log("helth: " + str(sensorlib.request_data(sensor_socket, 'batteryGetHealth', [])) + '\n')
+log("level: " + str(sensorlib.request_data(sensor_socket, 'batteryGetLevel', [])) + '\n')
+log("plug type: " + str(sensorlib.request_data(sensor_socket, 'batteryGetPlugType', [])) + '\n')
+log("status: " + str(sensorlib.request_data(sensor_socket, 'batteryGetStatus', [])) + '\n')
+log("tech: " + sensorlib.request_data(sensor_socket, 'batteryGetTechnology', []) + '\n')
 
-request_data(sensor_socket, 'batteryStopMonitoring', [])
+sensorlib.request_data(sensor_socket, 'batteryStopMonitoring', [])
 sensor_socket.close()

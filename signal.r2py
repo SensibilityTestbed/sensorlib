@@ -11,17 +11,17 @@ v 0.0.1, 20150404 1400 YZ
 """
 
 
-dy_import_module_symbols("sensorlib.r2py")
+sensorlib = dy_import_module("sensorlib.r2py")
 
 # get a connection to communicate with sensors
-port = get_connectionport()
-sensor_socket = getconnection(port)
+port = sensorlib.get_connectionport()
+sensor_socket = sensorlib.getconnection(port)
 
-request_data(sensor_socket, 'startTrackingSignalStrengths', [])
+sensorlib.request_data(sensor_socket, 'startTrackingSignalStrengths', [])
 
-signal_data = request_data(sensor_socket, 'readSignalStrengths', [])
+signal_data = sensorlib.request_data(sensor_socket, 'readSignalStrengths', [])
 log(str(signal_data) + '\n')
 
-request_data(sensor_socket, 'stopTrackingSignalStrengths', [])
+sensorlib.request_data(sensor_socket, 'stopTrackingSignalStrengths', [])
 
 sensor_socket.close()
