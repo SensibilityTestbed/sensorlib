@@ -1,5 +1,5 @@
 """
-accelerometer.r2py -- Sensibility Testbed demo code
+sensortest.r2py -- Sensibility Testbed demo code
 
 Yanyan Zhuang, UBC, Canada
 
@@ -30,6 +30,7 @@ starttime = getruntime()
 while count < 100:
   try:
     sensor_data = sensorlib.request_data(sensor_socket, 'sensorsReadAccelerometer', []) 
+    log(sensor_data, '\n')
     count = count + 1
   except Exception as e:
     log(str(e), '\n')
