@@ -20,7 +20,7 @@ sensor_socket = sensorlib.getconnection(port)
 sensorlib.request_data(sensor_socket, 'batteryStartMonitoring', [])
 
 log("present: " + str(sensorlib.request_data(sensor_socket, 'batteryCheckPresent', [])) + '\n')
-log("helth: " + str(sensorlib.request_data(sensor_socket, 'batteryGetHealth', [])) + '\n')
+log("health: " + str(sensorlib.request_data(sensor_socket, 'batteryGetHealth', [])) + '\n')
 log("level: " + str(sensorlib.request_data(sensor_socket, 'batteryGetLevel', [])) + '\n')
 log("plug type: " + str(sensorlib.request_data(sensor_socket, 'batteryGetPlugType', [])) + '\n')
 log("status: " + str(sensorlib.request_data(sensor_socket, 'batteryGetStatus', [])) + '\n')

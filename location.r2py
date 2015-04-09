@@ -19,20 +19,19 @@ sensor_socket = sensorlib.getconnection(port)
 
 sensorlib.request_data(sensor_socket, 'startLocating', [])
 
-#provider = request_data(sensor_socket, 'locationProviders', []) 
-#log(provider + '\n')
-
-#provider = request_data(sensor_socket, 'locationProviderEnabled', ["network"])
-#log(provider + '\n')
-
-
 # try to read current location
 location_data = sensorlib.request_data(sensor_socket, 'readLocation', []) 
+
+# will try trials times
+trials = 5
 
 # if location was not retrieved, keep trying
 while not location_data:
   sleep(2)
   location_data = sensorlib.request_data(sensor_socket, 'readLocation', [])
+  trials = trials -1
+  if trials <= 0:
+    break
 
 providers = ["gps", "network", "passive"]
 for p in providers:

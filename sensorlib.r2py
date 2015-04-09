@@ -90,8 +90,10 @@ def getconnection(ap_port):
       sl4a_socket = openconnection("127.0.0.1", ap_port, "127.0.0.1", port, 5)
       log("Using port", port, "to get sensor data.\n")
       return sl4a_socket
+    except (RepyArgumentError, AddressBindingError, ResourceForbiddenError, DuplicateTupleError, AlreadyListeningError, CleanupInProgressError, ConnectionRefusedError, TimeoutError, InternetConnectivityError), e:
+      log("Connection error: ", repr(e), '\n')
     except Exception as e:
-      log("Using port", port, "had a problem:", str(e), '\n')
+      log("Using port", port, "had a problem:", repr(e), '\n')
       continue
 
   log("No ports available.\n")
