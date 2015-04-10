@@ -33,6 +33,7 @@ while not location_data:
   if trials <= 0:
     break
 
+location = ""
 providers = ["gps", "network", "passive"]
 for p in providers:
   try:
@@ -43,24 +44,25 @@ for p in providers:
     #log("key exception: " + str(e) + '\n')
     continue
 
-coordinates = {"latitude": location["latitude"], "longitude": location["longitude"]}
-log("latitude: " + str(coordinates["latitude"]) + ", longitude: " + str(coordinates["longitude"]) + '\n')
+if location != "":
+  coordinates = {"latitude": location["latitude"], "longitude": location["longitude"]}
+  log("latitude: " + str(coordinates["latitude"]) + ", longitude: " + str(coordinates["longitude"]) + '\n')
 
-# return a list of addresses (1 address by default)
-address = sensorlib.request_data(sensor_socket, 'geocode', [coordinates["latitude"], coordinates["longitude"]])
+  # return a list of addresses (1 address by default)
+  address = sensorlib.request_data(sensor_socket, 'geocode', [coordinates["latitude"], coordinates["longitude"]])
 
-# take the first returned address
-address = address[0]
-log(str(address) + '\n')
+  # take the first returned address
+  address = address[0]
+  log(str(address) + '\n')
 
-postal = address["postal_code"]
-streetno = address["feature_name"]
-streetname = address["thoroughfare"]
-cityname = address["locality"]
-statename = address["admin_area"]
-countryname = address["country_name"]
+  postal = address["postal_code"]
+  streetno = address["feature_name"]
+  streetname = address["thoroughfare"]
+  cityname = address["locality"]
+  statename = address["admin_area"]
+  countryname = address["country_name"]
 
-log(streetno + ' ' + streetname + ', ' + cityname + ', ' + statename + ', ' + countryname + ', ' + postal + '\n')
+  log(streetno + ' ' + streetname + ', ' + cityname + ', ' + statename + ', ' + countryname + ', ' + postal + '\n')
 
 lastknown_location = sensorlib.request_data(sensor_socket, 'getLastKnownLocation', []) 
 log("last known location: " + str(lastknown_location) + '\n')
