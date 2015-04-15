@@ -29,8 +29,8 @@ while count < 100:
     count = count + 1
   except Exception as e:
     log(str(e), '\n')
-    request_data(sensor_socket, 'stopSensing', []) 
-    sensor_socket.close()
+    sensorlib.request_data(sensor_socket, 'stopSensing', []) 
+    sensorlib.sensor_socket.close()
     #raise
 
 duration = (getruntime() - starttime) / count
