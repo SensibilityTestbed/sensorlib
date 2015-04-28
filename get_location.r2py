@@ -1,0 +1,58 @@
+"""
+get_location.r2py
+
+Yanyan Zhuang, UBC, Canada
+
+Change log:
+
+v 0.0.1, 20150428 1400 YZ
+  Using sensor lib code to pull location data from a phone 
+
+"""
+
+
+sensorlib = dy_import_module("sensorlib.r2py")
+
+def get_location():
+  # get a connection to communicate with sensors
+  port = sensorlib.get_connectionport()
+  sensor_socket = sensorlib.getconnection(port)
+
+  sensorlib.request_data(sensor_socket, 'startLocating', [])
+
+  # try to read current location
+  location_data = sensorlib.request_data(sensor_socket, 'readLocation', []) 
+
+  # will try to get location data RETRIES times at most before giving up
+  RETRIES = 5
+ 
+  for retry in range(RETRIES):
+    sleep(2)
+    location_data = sensorlib.request_data(sensor_socket, 'readLocation', [])
+    if location_data:
+      break
+  else:
+    log("Could not get location data. Exiting!\n")
+    exitall()
+
+
+  location = ""
+  providers = ["gps", "network", "passive"]
+  for p in providers:
+    try:
+      location = location_data[p]
+      break
+    except Exception as e:
+      #log("key exception: " + str(e) + '\n')
+      continue
+
+  mylocation = {}
+  if location != "":
+    mylocation = {"latitude": location["latitude"], "longitude": location["longitude"], "bearing": location["bearing"], "altitude": location["altitude"], 
+                  "time": location["time"], "provider": location["provider"], "speed": location["speed"], "accuracy": location["accuracy"]}
+
+  sensorlib.request_data(sensor_socket, 'stopLocating', []) 
+  sensor_socket.close()
+  return mylocation
+
+log(get_location())
