@@ -35,6 +35,8 @@ def get_location():
     log("Could not get location data. Exiting!\n")
     exitall()
 
+  # location_data is in the form {u'network': {u'bearing': 0, u'altitude': 0, u'time': x, 
+  # u'longitude': x, u'provider': u'network', u'latitude': x, u'speed': 0, u'accuracy': x}}
   location = ""
   assert len(location_data.keys()) == 1   # should return only one provider
   provider = location_data.keys()[0]
