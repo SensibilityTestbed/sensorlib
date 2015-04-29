@@ -1,0 +1,40 @@
+"""
+get_wifi.r2py
+
+Yanyan Zhuang, UBC, Canada
+
+Change log:
+
+v 0.0.1, 20150428 2225 YZ
+  Using sensor lib code to pull location data from a phone 
+
+"""
+
+sensorlib = dy_import_module("sensorlib.r2py")
+port = sensorlib.get_connectionport()
+sensor_socket = sensorlib.getconnection(port)
+
+def is_wifi_enabled():
+  return sensorlib.request_data(sensor_socket, 'checkWifiState', [])
+
+
+def get_wifi_connection_info():
+  wifi_conn = sensorlib.request_data(sensor_socket, 'wifiGetConnectionInfo', [])
+  
+  # wifi_conn is in the format {u'ssid': u'"x"', u'bssid': u'x:x:x:x:x:x', 
+  # u'network_id': x, u'supplicant_state': u'x', u'link_speed': x, 
+  # u'mac_address': u'x:x:x:x:x:x', u'rssi': -x, u'ip_address': x, 
+  # u'hidden_ssid': x}
+  mywifi = {}
+  if wifi_conn != "":  # are these all necessary?
+    mywifi = {"ssid": wifi_conn["ssid"], "bssid": wifi_conn["bssid"], "network_id": 
+              wifi_conn["network_id"], "supplicant_state": wifi_conn["supplicant_state"],
+              "link_speed": wifi_conn["link_speed"], "mac_address": wifi_conn["mac_address"], 
+              "rssi": wifi_conn["rssi"], "ip_address": wifi_conn["ip_address"], 
+              "hidden_ssid": wifi_conn["hidden_ssid"]}
+  return mywifi
+
+def do_wifi_scan():
+  sensorlib.request_data(sensor_socket, 'wifiStartScan', [])
+  # the result is too long. return directly for now..
+  return sensorlib.request_data(sensor_socket, 'wifiGetScanResults', [])
