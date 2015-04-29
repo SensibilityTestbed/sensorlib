@@ -35,21 +35,17 @@ def get_location():
     log("Could not get location data. Exiting!\n")
     exitall()
 
-
   location = ""
-  providers = ["gps", "network", "passive"]
-  for p in providers:
-    try:
-      location = location_data[p]
-      break
-    except Exception as e:
-      #log("key exception: " + str(e) + '\n')
-      continue
+  assert len(location_data.keys()) == 1   # should return only one provider
+  provider = location_data.keys()[0]
+  location = location_data[provider]
 
   mylocation = {}
   if location != "":
-    mylocation = {"latitude": location["latitude"], "longitude": location["longitude"], "bearing": location["bearing"], "altitude": location["altitude"], 
-                  "time": location["time"], "provider": location["provider"], "speed": location["speed"], "accuracy": location["accuracy"]}
+    mylocation = {"latitude": location["latitude"], "longitude": location["longitude"], 
+                  "bearing": location["bearing"], "altitude": location["altitude"], 
+                  "time": location["time"], "provider": location["provider"], 
+                  "speed": location["speed"], "accuracy": location["accuracy"]}
 
   sensorlib.request_data(sensor_socket, 'stopLocating', []) 
   sensor_socket.close()
