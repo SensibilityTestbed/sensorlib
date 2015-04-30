@@ -1,0 +1,63 @@
+def blurred_is_wifi_enabled():
+  # Return the opposite of the real value
+  return not is_wifi_enabled()
+
+
+
+def blurred_get_wifi_connection_info():
+  wifi = get_wifi_connection_info()
+  # Blur SSID
+  wifi["ssid"] = "(An SSID with " + str(len(wifi["ssid"])) + " letters)"
+
+  # Truncate AP and device MAC addresses to the manufacturer ID
+  wifi["bssid"] = wifi["bssid"][0:8] + 3*":00"
+  wifi["mac_address"] = wifi["mac_address"][0:8] + 3*":00"
+
+  return wifi
+
+
+
+def blurred_do_wifi_scan():
+  wifi_list = do_wifi_scan()
+  blurred_wifi_list = []
+  for wifi in wifi_list:
+    # Round the frequency to 0.1 GHz
+    wifi["frequency"] = 100 * (wifi["frequency"]/100)
+    # Blur SSID
+    wifi["ssid"] = "(An SSID with " + str(len(wifi["ssid"])) + " letters)"
+    # Truncate AP MAC to the manufacturer ID
+    wifi["bssid"] = wifi["bssid"][0:8] + 3*":00"
+    blurred_wifi_list.append(wifi)
+
+  return blurred_wifi_list
+
+
+
+CHILD_CONTEXT_DEF["is_wifi_enabled"] = {
+    "type": "func",
+    "args": None,
+    "return": bool,
+    "exceptions": "any",
+    "target": blurred_is_wifi_enabled,
+}
+
+
+CHILD_CONTEXT_DEF["get_wifi_connection_info"] = {
+    "type": "func",
+    "args": None,
+    "return": dict,
+    "exceptions": "any",
+    "target": blurred_get_wifi_connection_info,
+}
+
+
+CHILD_CONTEXT_DEF["do_wifi_scan"] = {
+    "type": "func",
+    "args": None,
+    "return": list,
+    "exceptions": "any",
+    "target": blurred_do_wifi_scan,
+}
+
+secure_dispatch_module()
+

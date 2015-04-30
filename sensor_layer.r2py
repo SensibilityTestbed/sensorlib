@@ -1,0 +1,56 @@
+"""A 'security layer'-like thing that adds getsenor.r2py's calls to the 
+child namespace so that they appear to belong to the API.
+
+Usage:
+start encasementlib.r2py dylink.r2py sensor_layer.r2py [any blur layers] \
+    user-program.r2py
+"""
+
+getsensor = dy_import_module("getsensor.r2py")
+
+CHILD_CONTEXT_DEF["get_location"] = {
+    "type": "func",
+    "args": None,
+    "return": dict,
+    "exceptions": "any",
+    "target": getsensor.get_location,
+}
+
+
+CHILD_CONTEXT_DEF["get_lastknown_location"] = {
+    "type": "func",
+    "args": None,
+    "return": dict,
+    "exceptions": "any",
+    "target": getsensor.get_lastknown_location,
+}
+
+
+CHILD_CONTEXT_DEF["is_wifi_enabled"] = {
+    "type": "func",
+    "args": None,
+    "return": bool,
+    "exceptions": "any",
+    "target": getsensor.is_wifi_enabled,
+}
+
+
+CHILD_CONTEXT_DEF["get_wifi_connection_info"] = {
+    "type": "func",
+    "args": None,
+    "return": dict,
+    "exceptions": "any",
+    "target": getsensor.get_wifi_connection_info,
+}
+
+
+CHILD_CONTEXT_DEF["do_wifi_scan"] = {
+    "type": "func",
+    "args": None,
+    "return": list,
+    "exceptions": "any",
+    "target": getsensor.do_wifi_scan,
+}
+
+secure_dispatch_module()
+
