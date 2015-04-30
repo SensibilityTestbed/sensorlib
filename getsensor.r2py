@@ -175,7 +175,7 @@ def get_wifi_connection_info():
     "supplicant_state": current WPA association state (string),
     "link_speed": link speed in MBps (int),
     "mac_address": this device's WiFi interface MAC (string),
-    "ip_address": this device's IP address (string),
+    XXX "ip_address": this device's IP address (XXX int, byte quadruples reversed!),
     XXX "network_id": XXX (int),
     "hidden_ssid": True if the SSID is not broadcast (bool)
   }
