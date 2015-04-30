@@ -1,0 +1,99 @@
+"""
+A library[1] to make `str`s from Unicode strings, or things containing them.
+1: A simple, unfinished, and little tested library, that is.
+
+You will want to use the scrub(...) function for your data. 
+It calls the other functions as required to return you tasty str's.
+"""
+
+
+
+def is_unicode(string):
+  """A roundabout way for checking isinstance(string, unicode),
+  needed as the unicode keyword is forbidden in Repy.
+  BUG: Falsely true for objects."""
+  return not isinstance(string, (int, long, float, list, tuple, 
+        str, dict, bool)) and string is not None
+
+
+
+def scrub_string(source_string, replacement_char="."):
+  # Return str's (which are not Unicode) unchanged
+  if isinstance(source_string, str):
+    return source_string
+
+  # Sanity checks for arguments
+  if not is_unicode(source_string):
+    raise RepyArgumentError("source_string '" + str(source_string) + 
+       "' is not an Unicode string.")
+
+  if not isinstance(replacement_char, str):
+    raise RepyArgumentError("replacement_char must be of type str.")
+
+  # All good, let's scrub!
+  clean_string = ""
+  for char in source_string:
+    if 0 <= ord(char) <= 127:
+      # Python 2 coerces all str+unicode concatenations to Unicode. 
+      # However, this very `char` is guaranteed to be castable to str. 
+      # Do that to keep `clean_string` a str!
+      clean_string += str(char)
+    else:
+      clean_string += replacement_char
+
+  return clean_string
+
+
+
+def scrub_dict(source_dict, replacement_char="."):
+  """Clean source_dict's keys and values of Unicode. Recurse as required."""
+  if not isinstance(source_dict, (dict, SafeDict)):
+    raise RepyArgumentError("source_dict '" + str(source_dict) + 
+       "' must be a dict or SafeDict!")
+
+  clean_dict = {}
+  # Clean all the source_dict's items. This may require further 
+  # string scrubbing (for both keys and values), recursion (for dict 
+  # values), or no-ops (for numeric, boolean, or NoneType values).
+  for key, value in source_dict.items():
+    # XXX Key scrubbing may result in collisions when only the 
+    # XXX Unicode portions of the key differ!
+    clean_key = scrub_string(key)
+    clean_dict[clean_key] = scrub(value)
+
+  return clean_dict
+
+
+
+def scrub_list(source_list, replacement_char="."):
+  """Clean list elements of Unicode. I assume we will not see tuples, 
+  as the JSON decoder should not return any."""
+  if not isinstance(source_list, list):
+    raise RepyArgumentError("source_list '" + str(source_list) + 
+       "' must be a list!")
+
+  clean_list = []
+  # Clean all the source_list's elements. This may require further 
+  # string scrubbing, recursion (for dict or list values), or no-ops 
+  # (for numeric, boolean, or NoneType values).
+  for value in source_list:
+    clean_list.append(scrub(value))
+
+  return clean_list
+
+
+
+def scrub(value, replacement_char="."):
+  """Scrub `value`, whatever type, of Unicode chars it contains."""
+  if is_unicode(value):
+    return scrub_string(value, replacement_char)
+  elif isinstance(value, list):
+    # Recurse to clean the contained list
+    return scrub_list(value, replacement_char)
+  elif isinstance(value, dict):
+    # Recurse to clean the contained dict
+    return scrub_dict(value, replacement_char)
+  else:
+    # Any other data type we just pass down.
+    return value
+

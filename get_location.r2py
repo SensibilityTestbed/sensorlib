@@ -24,32 +24,42 @@ def get_location():
   location_data = sensorlib.request_data(sensor_socket, 'readLocation', []) 
 
   # will try to get location data RETRIES times at most before giving up
-  RETRIES = 5
- 
-  for retry in range(RETRIES):
-    sleep(2)
-    location_data = sensorlib.request_data(sensor_socket, 'readLocation', [])
-    if location_data:
+  # note: readLocation call can timeout, or not responsive
+  if not location_data:
+    RETRIES = 5 
+    for retry in range(RETRIES):
+      sleep(2)
+      # location_data is in the form {u'network': {u'bearing': 0, u'altitude': 0, u'time': x, 
+      # u'longitude': x, u'provider': u'network', u'latitude': x, u'speed': 0, u'accuracy': x}}
+      location_data = sensorlib.request_data(sensor_socket, 'readLocation', [])
+      if location_data:
+        break
+    else:
+      # raise Exception("Could not get location data!\n")
+      # location_data is in the form {u'passive': {u'bearing': 0, u'altitude': 0, u'time': x, 
+      # u'longitude': x, u'provider': u'network', u'latitude': s, u'speed': 0, u'accuracy': x}, 
+      # u'network': {u'bearing': 0, u'altitude': 0, u'time': x, u'longitude': x, 
+      # u'provider': u'network', u'latitude': x, u'speed': 0, u'accuracy': x}, u'gps': None}
+      location_data = sensorlib.request_data(sensor_socket, 'getLastKnownLocation', [])
+      
+  sensorlib.request_data(sensor_socket, 'stopLocating', []) 
+  assert len(location_data.keys()) >= 1   # should return at least one provider
+
+  location = None
+  for i in range(len(location_data.keys())):
+    provider = location_data.keys()[i]
+    location = location_data[provider]
+    if location != None:
       break
   else:
-    log("Could not get location data. Exiting!\n")
-    exitall()
+    raise Exception("Could not get location data!\n")
 
-  # location_data is in the form {u'network': {u'bearing': 0, u'altitude': 0, u'time': x, 
-  # u'longitude': x, u'provider': u'network', u'latitude': x, u'speed': 0, u'accuracy': x}}
-  location = ""
-  assert len(location_data.keys()) == 1   # should return only one provider
-  provider = location_data.keys()[0]
-  location = location_data[provider]
+  # convert unicode format (u'longitude') to ASCII (longitude)
+  mylocation = {"latitude": location["latitude"], "longitude": location["longitude"], 
+                "bearing": location["bearing"], "altitude": location["altitude"], 
+                "time": location["time"], "provider": location["provider"], 
+                "speed": location["speed"], "accuracy": location["accuracy"]}
 
-  mylocation = {}
-  if location != "":
-    mylocation = {"latitude": location["latitude"], "longitude": location["longitude"], 
-                  "bearing": location["bearing"], "altitude": location["altitude"], 
-                  "time": location["time"], "provider": location["provider"], 
-                  "speed": location["speed"], "accuracy": location["accuracy"]}
-
-  sensorlib.request_data(sensor_socket, 'stopLocating', []) 
   sensor_socket.close()
   return mylocation
 

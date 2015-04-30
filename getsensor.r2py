@@ -1,0 +1,128 @@
+"""
+getsensor.r2py
+
+Yanyan Zhuang, UBC, Canada
+
+Change log:
+
+v 0.0.1, 20150429 1630 YZ
+  Using sensor lib code to get all _original_ data from a phone 
+
+"""
+
+# a small lib that makes `str`s from Unicode strings
+unicode_scrubber = dy_import_module("unicode_scrubber.r2py")
+
+sensorlib = dy_import_module("sensorlib.r2py")
+port = sensorlib.get_connectionport()
+sensor_socket = sensorlib.getconnection(port)
+
+def get_location():
+  """
+  Get original location data from GPS/network/passive. Return as a dict.
+  """
+
+  # start!
+  sensorlib.request_data(sensor_socket, 'startLocating', [])
+
+  # try to read current location
+  # note: readLocation call can timeout, or not responsive
+  location_data = sensorlib.request_data(sensor_socket, 'readLocation', []) 
+
+  # if no location available, will try to get location data RETRIES times at most before giving up
+  if not location_data:
+    RETRIES = 5 
+    for retry in range(RETRIES):
+      sleep(2)
+      # location_data is in the form {u'network': {u'bearing': 0, u'altitude': 0, u'time': x, 
+      # u'longitude': x, u'provider': u'network', u'latitude': x, u'speed': 0, u'accuracy': x}}
+      location_data = sensorlib.request_data(sensor_socket, 'readLocation', [])
+      if location_data:
+        break
+    else:
+      raise Exception("Could not get location data!\n")
+    
+  # stop!  
+  sensorlib.request_data(sensor_socket, 'stopLocating', []) 
+  assert len(location_data.keys()) >= 1   # should return at least one provider (though it should return only one)
+
+  location = None
+  for i in range(len(location_data.keys())):
+    provider = location_data.keys()[i]
+    location = location_data[provider]
+    if location != None:
+      # convert unicode format (u'longitude') to ASCII (longitude)
+      location = unicode_scrubber.scrub(location)
+      break
+
+  return location
+
+
+def get_lastknown_location():
+  """
+  Get original _last-known_ location data from GPS/network/passive. Return as a dict.
+  """
+
+  # start!
+  sensorlib.request_data(sensor_socket, 'startLocating', [])
+
+  # try to read current location
+  # location_data is in the form {u'passive': {u'bearing': 0, u'altitude': 0, u'time': x, 
+  # u'longitude': x, u'provider': u'network', u'latitude': s, u'speed': 0, u'accuracy': x}, 
+  # u'network': {u'bearing': 0, u'altitude': 0, u'time': x, u'longitude': x, 
+  # u'provider': u'network', u'latitude': x, u'speed': 0, u'accuracy': x}, u'gps': None}
+  location_data = sensorlib.request_data(sensor_socket, 'getLastKnownLocation', []) 
+
+  # stop!  
+  sensorlib.request_data(sensor_socket, 'stopLocating', []) 
+  assert len(location_data.keys()) >= 1   # should return at least one provider
+
+  location = None
+  for i in range(len(location_data.keys())):
+    provider = location_data.keys()[i]
+    location = location_data[provider]
+    if location != None:
+      # convert unicode format (u'longitude') to ASCII (longitude)
+      location = unicode_scrubber.scrub(location)
+      break
+  else:
+    raise Exception("Could not get location data!\n")
+
+  return location
+
+
+def is_wifi_enabled():
+  """
+  Return if WiFi is enabled on this device (True/False)
+  """
+
+  # True or False
+  return sensorlib.request_data(sensor_socket, 'checkWifiState', [])
+
+
+def get_wifi_connection_info():
+  """
+  Return WiFi connection info on this device. Return as a dict.
+  """
+
+  # wifi_conn is in the format {u'ssid': u'"x"', u'bssid': u'x:x:x:x:x:x', 
+  # u'network_id': x, u'supplicant_state': u'x', u'link_speed': x, 
+  # u'mac_address': u'x:x:x:x:x:x', u'rssi': -x, u'ip_address': x, 
+  # u'hidden_ssid': x}
+  wifi_conn = sensorlib.request_data(sensor_socket, 'wifiGetConnectionInfo', [])
+
+  # convert unicode format to ASCII
+  return unicode_scrubber.scrub(wifi_conn)
+
+
+def do_wifi_scan():
+  """
+  Return WiFi scan results from this device. Return a HUGE dict.
+  """
+
+  sensorlib.request_data(sensor_socket, 'wifiStartScan', []) 
+  wifi_data = sensorlib.request_data(sensor_socket, 'wifiGetScanResults', [])
+  
+  # we do not need to stop scan (it stops itself after scan is done)
+  # convert unicode format to ASCII
+  return unicode_scrubber.scrub(wifi_data)
