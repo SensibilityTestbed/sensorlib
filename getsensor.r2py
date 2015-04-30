@@ -41,7 +41,7 @@ def get_location():
   None
 
   <Exceptions>
-  LocationNotFoundException (descends from RepyException) when no locaiton 
+  LocationNotFoundException (descends from RepyException) when no location 
   information is found. 
 
   <Side Effects>
