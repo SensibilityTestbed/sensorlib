@@ -2,7 +2,7 @@
 child namespace so that they appear to belong to the API.
 
 Usage:
-start encasementlib.r2py dylink.r2py sensor_layer.r2py [any blur layers] \
+start dylink.r2py encasementlib.r2py sensor_layer.r2py [any blur layers] \
     user-program.r2py
 """
 
