@@ -165,12 +165,20 @@ def is_wifi_enabled():
 def get_wifi_connection_info():
   """
   <Purpose>
-  Return WiFi connection info on this device. Calls 
+  Return information about the WiFi network currently connected to. Calls 
   sensorlib.request_data(sensor_socket, 'wifiGetConnectionInfo', []). The 
-  WiFi information is returned as a dict, such as {u'ssid': u'"x"', 
-  u'bssid': u'x:x:x:x:x:x', u'network_id': x, u'supplicant_state': u'x', 
-  u'link_speed': x, u'mac_address': u'x:x:x:x:x:x', u'rssi': -x, u'ip_address': 
-  x, u'hidden_ssid': x}. This is converted to ASCII using unicode_scrubber.
+  WiFi information is returned as a dict of this format:
+  {
+    "ssid": network SSID (string),
+    "bssid": network BSSID, i.e. MAC address (string),
+    "rssi": received signal strength in dBm (negative int),
+    "supplicant_state": current WPA association state (string),
+    "link_speed": link speed in MBps (int),
+    "mac_address": this device's WiFi interface MAC (string),
+    "ip_address": this device's IP address (string),
+    XXX "network_id": XXX (int),
+    "hidden_ssid": True if the SSID is not broadcast (bool)
+  }
 
   <Arguments>
   None
@@ -199,8 +207,15 @@ def do_wifi_scan():
   <Purpose>
   Return WiFi connection info on this device. Calls 
   sensorlib.request_data(sensor_socket, 'wifiGetScanResults', []).
-  Return WiFi scan results from this device in a HUGE dict, then is
-  converted to ASCII using unicode_scrubber.
+  Return WiFi scan results in a list of dicts of this format, 
+  with one dict for each network found:
+  {
+    "ssid": network SSID (string),
+    "bssid": network BSSID, i.e. MAC address (string),
+    "frequency": frequency in MHz (int),
+    "level": received signal strength in dBm (negative int),
+    "capabilities": security features supported by the network (string)
+  }
 
   <Arguments>
   None
