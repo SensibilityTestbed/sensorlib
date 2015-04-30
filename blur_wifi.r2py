@@ -1,9 +1,3 @@
-def blurred_is_wifi_enabled():
-  # Return the opposite of the real value
-  return not is_wifi_enabled()
-
-
-
 def blurred_get_wifi_connection_info():
   wifi = get_wifi_connection_info()
   # Blur SSID
@@ -31,15 +25,6 @@ def blurred_do_wifi_scan():
 
   return blurred_wifi_list
 
-
-
-CHILD_CONTEXT_DEF["is_wifi_enabled"] = {
-    "type": "func",
-    "args": None,
-    "return": bool,
-    "exceptions": "any",
-    "target": blurred_is_wifi_enabled,
-}
 
 
 CHILD_CONTEXT_DEF["get_wifi_connection_info"] = {
