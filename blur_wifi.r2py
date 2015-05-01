@@ -6,7 +6,7 @@ def blurred_get_wifi_connection_info():
   wifi = get_wifi_connection_info()
   # Blur SSID
   md5 = md5py.md5py_new(wifi["ssid"])
-  wifi["ssid"] = unicode_scrubber.scrub(md5.digest())
+  wifi["ssid"] = unicode_scrubber.scrub(md5.hexdigest())[:8]
 
   # Truncate AP and device MAC addresses to the manufacturer ID
   wifi["bssid"] = wifi["bssid"][0:8] + 3*":00"
@@ -24,7 +24,7 @@ def blurred_do_wifi_scan():
     wifi["frequency"] = 100 * (wifi["frequency"]/100)
     # Blur SSID
     md5 = md5py.md5py_new(wifi["ssid"])
-    wifi["ssid"] = unicode_scrubber.scrub(md5.digest())
+    wifi["ssid"] = unicode_scrubber.scrub(md5.hexdigest())[:8]
     # Truncate AP MAC to the manufacturer ID
     wifi["bssid"] = wifi["bssid"][0:8] + 3*":00"
     blurred_wifi_list.append(wifi)
