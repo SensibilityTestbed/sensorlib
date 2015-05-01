@@ -1,0 +1,52 @@
+def blur_location_round():
+
+  try:
+    location = get_location()
+  except Exception: # Not able to use LocationNotFoundException here
+    raise Exception
+
+  # Blur the coordinates by rounding
+  location["latitude"] = round(float(location["latitude"]), 1)
+  location["longitude"] = round(float(location["longitude"]), 1)
+
+  return location
+
+
+
+def blur_lastknown_location_round():
+
+  try:
+    location = get_lastknown_location()
+  except Exception: # Not able to use LocationNotFoundException here
+    raise Exception
+
+  # Blur the coordinates by rounding
+  for i in range(len(location.keys())):
+    provider = location.keys()[i]
+    location_item = location[provider]
+    if location_item != None:
+      location_item["latitude"] = round(float(location_item["latitude"]), 1)
+      location_item["longitude"] = round(float(location_item["longitude"]), 1)
+
+  return location
+
+
+CHILD_CONTEXT_DEF["get_location"] = {
+    "type": "func",
+    "args": None,
+    "return": dict,
+    "exceptions": "any",
+    "target": blur_location_round
+}
+
+
+CHILD_CONTEXT_DEF["get_lastknown_location"] = {
+    "type": "func",
+    "args": None,
+    "return": dict,
+    "exceptions": "any",
+    "target": blur_lastknown_location_round
+}
+
+
+secure_dispatch_module()
