@@ -1,0 +1,159 @@
+dy_import_module_symbols("httpretrieve.r2py")
+dy_import_module_symbols("math.r2py")
+dy_import_module_symbols("librepyfile.r2py")
+
+statefilename = "states.txt"        # Database of states
+countryfilename = "countries.txt"   # Database of countries
+
+# Downloads the required file from the server
+def get_file_from_server(filename):
+  if filename not in listfiles(): # In case it already exists
+    if filename not in [statefilename, countryfilename]:
+      url = "http://sensibilityclearinghouse.poly.edu/data/quad/" + filename
+    else:
+      url = "http://sensibilityclearinghouse.poly.edu/data/" + filename
+    httpretrieve_save_file(url, filename)
+
+
+# Returns a dictionary containing information about the point closest to
+# a given lat/lng pair, from the database.
+# {"city": closest_city, "statecode": closest_state_code, "countrycode":
+# closest_country_code, "coordinates": closest_point}
+def find_closest_point(lat, lng):
+
+  # Find the database file with coordinates closest to the given lat/lng pair
+  filename = get_filename(lat, lng)
+	# Get the list of coordinates from that file
+  listofpoints = load_lat_lng_from_file(filename)
+
+  min_dist = 9999
+  closest_point = ()
+  point1 = (lat, lng)
+  closest_city = ""
+  closest_state_code = ""
+  closest_country_code = ""
+
+  for city in listofpoints.keys():
+    data = listofpoints[city]
+    point2 = (data[0], data[1])
+    dist = find_distance(point1, point2)
+    if dist < min_dist:
+      min_dist = dist
+      closest_point = point2
+      closest_city = city
+      closest_state_code = data[3]
+      closest_country_code = data[2]
+
+  closest = {"city": closest_city, "statecode": closest_state_code, "countrycode": closest_country_code, "coordinates": closest_point}
+
+  return closest
+
+
+# Returns the filename in the database which contains the given lat/lng point
+# and other nearby points
+def get_filename(lat, lng):
+  # get ceiling as x/y index
+  x = int(math_ceil(lat))
+  y = int(math_ceil(lng))
+  filename = str(x) + '_' + str(y) + '.txt'
+  return filename
+
+
+# Returns a dictionary containing all the cities in the given file, along with
+# their corresponding data
+# {city1: [lat, lng, country_code, state_code], city2: [lat, lng, country_code,
+# state_code], ...}
+def load_lat_lng_from_file(filename):
+
+  get_file_from_server(filename)
+  listofpoints = {}
+  fileobj = open(filename, "r")
+
+  while True:
+    try:
+      line = fileobj.next().strip()
+    except StopIteration:
+      break
+    else:
+      linedata = line.split("\t")
+      city_name = linedata[0]
+      lat = linedata[1]
+      lng = linedata[2]
+      country_code = linedata[3]
+      state_code = linedata[4]
+      listofpoints[city_name] = [lat, lng, country_code, state_code]
+  fileobj.close()
+  return listofpoints
+
+
+# Returns the distance between two lat/lng points
+def find_distance(p1, p2):
+  (lat1, lng1) = p1
+  (lat2, lng2) = p2
+  lat2 = float(lat2)
+  lng2 = float(lng2)
+  lat_diff = (lat1-lat2) * (lat1-lat2)
+  lng_diff = (lng1-lng2) * (lng1-lng2)
+  # return squared distance
+  return lat_diff + lng_diff
+
+
+
+def get_city_location():
+  # to replace get_location()
+  try:
+    location_data = get_location()
+  except Exception: # Not able to use LocationNotFoundException here
+    raise Exception
+
+  latitude = location_data["latitude"]
+  longitude = location_data["longitude"]
+
+  closest = find_closest_point(latitude, longitude)
+  location_data["latitude"] = closest["coordinates"][0]
+  location_data["longitude"] = closest["coordinates"][1]
+
+  return location_data
+
+def get_city_lastknown_location():
+
+  # to replace get_lastknown_location()
+  try:
+    location_data = get_lastknown_location()
+  except Exception: # Not able to use LocationNotFoundException here
+    raise Exception
+
+  # Get the location from the the provider
+  for i in range(len(location_data.keys())):
+    provider = location_data.keys()[i]
+    location = location_data[provider]
+    if location != None:
+      latitude = location["latitude"]
+      longitude = location["longitude"]
+
+      closest = find_closest_point(latitude, longitude)
+      location["latitude"] = closest["coordinates"][0]
+      location["longitude"] = closest["coordinates"][1]
+
+  return location_data
+
+
+CHILD_CONTEXT_DEF["get_location"] = {
+    "type": "func",
+    "args": None,
+    "return": dict,
+    "exceptions": "any",
+    "target": get_city_location,
+}
+
+
+CHILD_CONTEXT_DEF["get_lastknown_location"] = {
+    "type": "func",
+    "args": None,
+    "return": dict,
+    "exceptions": "any",
+    "target": get_city_lastknown_location,
+}
+
+secure_dispatch_module()
+
