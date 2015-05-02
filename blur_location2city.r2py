@@ -132,8 +132,8 @@ def get_city_lastknown_location():
       longitude = location["longitude"]
 
       closest = find_closest_point(latitude, longitude)
-      location["latitude"] = closest["coordinates"][0]
-      location["longitude"] = closest["coordinates"][1]
+      location_data[provider]["latitude"] = closest["coordinates"][0]
+      location_data[provider]["longitude"] = closest["coordinates"][1]
 
   return location_data
 

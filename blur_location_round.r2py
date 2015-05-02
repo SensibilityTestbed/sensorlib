@@ -25,8 +25,8 @@ def blur_lastknown_location_round():
     provider = location.keys()[i]
     location_item = location[provider]
     if location_item != None:
-      location_item["latitude"] = round(float(location_item["latitude"]), 1)
-      location_item["longitude"] = round(float(location_item["longitude"]), 1)
+      location[provider]["latitude"] = round(float(location_item["latitude"]), 1)
+      location[provider]["longitude"] = round(float(location_item["longitude"]), 1)
 
   return location
 
