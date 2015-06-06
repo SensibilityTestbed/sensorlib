@@ -1,18 +1,20 @@
-dy_import_module_symbols("httpretrieve.r2py")
-dy_import_module_symbols("math.r2py")
-dy_import_module_symbols("librepyfile.r2py")
+httpretrieve = dy_import_module("httpretrieve.r2py")
+math = dy_import_module("math.r2py")
+librepyfile = dy_import_module("librepyfile.r2py")
 
 statefilename = "states.txt"        # Database of states
 countryfilename = "countries.txt"   # Database of countries
 
+
 # Downloads the required file from the server
 def get_file_from_server(filename):
+
   if filename not in listfiles(): # In case it already exists
     if filename not in [statefilename, countryfilename]:
       url = "http://sensibilityclearinghouse.poly.edu/data/quad/" + filename
     else:
       url = "http://sensibilityclearinghouse.poly.edu/data/" + filename
-    httpretrieve_save_file(url, filename)
+    httpretrieve.httpretrieve_save_file(url, filename)
 
 
 # Returns a dictionary containing information about the point closest to
@@ -27,11 +29,7 @@ def find_closest_point(lat, lng):
   listofpoints = load_lat_lng_from_file(filename)
 
   min_dist = 9999
-  closest_point = ()
   point1 = (lat, lng)
-  closest_city = ""
-  closest_state_code = ""
-  closest_country_code = ""
 
   for city in listofpoints.keys():
     data = listofpoints[city]
@@ -49,12 +47,12 @@ def find_closest_point(lat, lng):
   return closest
 
 
-# Returns the filename in the database which contains the given lat/lng point
-# and other nearby points
+# Returns the filename in the database with coordinates closest to the given lat/lng pair
 def get_filename(lat, lng):
+
   # get ceiling as x/y index
-  x = int(math_ceil(lat))
-  y = int(math_ceil(lng))
+  x = int(math.math_ceil(lat))
+  y = int(math.math_ceil(lng))
   filename = str(x) + '_' + str(y) + '.txt'
   return filename
 
@@ -67,7 +65,7 @@ def load_lat_lng_from_file(filename):
 
   get_file_from_server(filename)
   listofpoints = {}
-  fileobj = open(filename, "r")
+  fileobj = librepyfile.open(filename, "r")
 
   while True:
     try:
@@ -75,12 +73,12 @@ def load_lat_lng_from_file(filename):
     except StopIteration:
       break
     else:
-      linedata = line.split("\t")
-      city_name = linedata[0]
-      lat = linedata[1]
-      lng = linedata[2]
-      country_code = linedata[3]
-      state_code = linedata[4]
+      line = line.split("\t")
+      city_name = line[0]
+      lat = line[1]
+      lng = line[2]
+      country_code = line[3]
+      state_code = line[4]
       listofpoints[city_name] = [lat, lng, country_code, state_code]
   fileobj.close()
   return listofpoints
@@ -88,6 +86,7 @@ def load_lat_lng_from_file(filename):
 
 # Returns the distance between two lat/lng points
 def find_distance(p1, p2):
+
   (lat1, lng1) = p1
   (lat2, lng2) = p2
   lat2 = float(lat2)
@@ -98,9 +97,9 @@ def find_distance(p1, p2):
   return lat_diff + lng_diff
 
 
-
+# To replace get_location()
 def get_city_location():
-  # to replace get_location()
+
   try:
     location_data = get_location()
   except Exception: # Not able to use LocationNotFoundException here
@@ -110,14 +109,16 @@ def get_city_location():
   longitude = location_data["longitude"]
 
   closest = find_closest_point(latitude, longitude)
+
   location_data["latitude"] = closest["coordinates"][0]
   location_data["longitude"] = closest["coordinates"][1]
 
   return location_data
 
+
+# To replace get_lastknown_location()
 def get_city_lastknown_location():
 
-  # to replace get_lastknown_location()
   try:
     location_data = get_lastknown_location()
   except Exception: # Not able to use LocationNotFoundException here
@@ -156,4 +157,3 @@ CHILD_CONTEXT_DEF["get_lastknown_location"] = {
 }
 
 secure_dispatch_module()
-
