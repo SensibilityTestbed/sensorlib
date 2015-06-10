@@ -30,30 +30,30 @@ class LocationNotFoundException(RepyException):
 def get_location():
   """
   <Purpose>
-  Get original location data from GPS or network or passive. Calls 
-  sensorlib.request_data(sensor_socket, 'readLocation', []). The location
-  information is returned as a dict, such as {u'network': {u'bearing': 0, 
-  u'altitude': 0, u'time': x, u'longitude': x, u'provider': u'network', 
-  u'latitude': x, u'speed': 0, u'accuracy': x}}. This is converted to 
-  ASCII using unicode_scrubber.
+    Get original location data from GPS or network or passive. Calls 
+    sensorlib.request_data(sensor_socket, 'readLocation', []). The location
+    information is returned as a dict, which is converted to ASCII 
+    using unicode_scrubber.
 
   <Arguments>
-  None
+    None
 
   <Exceptions>
-  LocationNotFoundException (descends from RepyException) when no location 
-  information is found. 
+    LocationNotFoundException (descends from RepyException) when no location 
+    information is found. 
 
   <Side Effects>
-  When LocationNotFoundException is raised, the user of this method needs 
-  to try several times. If this still fails, then should try 
-  get_lastknown_location().
+    When LocationNotFoundException is raised, the user of this method needs 
+    to try several times. If this still fails, then should try 
+    get_lastknown_location().
 
   <Resource Consumption>
-  GPS or network location lookup. 
+    GPS or network location lookup. 
 
   <Returns>
-  location as a dict.
+    location as a dict, such as {u'network': {u'bearing': 0, u'altitude': 0, 
+    u'time': x, u'longitude': x, u'provider': u'network', u'latitude': x, 
+    u'speed': 0, u'accuracy': x}}.
   
   """
 
@@ -86,12 +86,8 @@ def get_lastknown_location():
   <Purpose>
   Get original _last-known_ location data from GPS/network/passive. Calls 
   sensorlib.request_data(sensor_socket, 'getLastKnownLocation', []). The 
-  location information is returned as a dict, such as {u'passive': 
-  {u'bearing': 0, u'altitude': 0, u'time': x, u'longitude': x, u'provider': 
-  u'network', u'latitude': s, u'speed': 0, u'accuracy': x}, u'network': 
-  {u'bearing': 0, u'altitude': 0, u'time': x, u'longitude': x, u'provider': 
-  u'network', u'latitude': x, u'speed': 0, u'accuracy': x}, u'gps': None}. 
-  This is converted to ASCII using unicode_scrubber.
+  location information is returned as a dict, which is converted to ASCII 
+  using unicode_scrubber.
 
   <Arguments>
   None
@@ -109,6 +105,11 @@ def get_lastknown_location():
   <Returns>
   location as a dict with three keys: passive, network, and gps. Each key 
   value is a dict in the same format as the value returned by get_location().
+  For example, {u'passive': {u'bearing': 0, u'altitude': 0, u'time': x, 
+  u'longitude': x, u'provider': u'network', u'latitude': s, u'speed': 0, 
+  u'accuracy': x}, u'network': {u'bearing': 0, u'altitude': 0, u'time': x, 
+  u'longitude': x, u'provider': u'network', u'latitude': x, u'speed': 0, 
+  u'accuracy': x}, u'gps': None}
 
   """
 
@@ -166,19 +167,7 @@ def get_wifi_connection_info():
   """
   <Purpose>
   Return information about the WiFi network currently connected to. Calls 
-  sensorlib.request_data(sensor_socket, 'wifiGetConnectionInfo', []). The 
-  WiFi information is returned as a dict of this format:
-  {
-    "ssid": network SSID (string),
-    "bssid": network BSSID, i.e. MAC address (string),
-    "rssi": received signal strength in dBm (negative int),
-    "supplicant_state": current WPA association state (string),
-    "link_speed": link speed in MBps (int),
-    "mac_address": this device's WiFi interface MAC (string),
-    XXX "ip_address": this device's IP address (XXX int, byte quadruples reversed!),
-    XXX "network_id": XXX (int),
-    "hidden_ssid": True if the SSID is not broadcast (bool)
-  }
+  sensorlib.request_data(sensor_socket, 'wifiGetConnectionInfo', []). 
 
   <Arguments>
   None
@@ -193,7 +182,18 @@ def get_wifi_connection_info():
   Lookup WiFi connection information on the device. 
 
   <Returns>
-  wifi_conn as a dict.
+  wifi_conn as a dict, and is returned as a dict of this format:
+  {
+    "ssid": network SSID (string),
+    "bssid": network BSSID, i.e. MAC address (string),
+    "rssi": received signal strength in dBm (negative int),
+    "supplicant_state": current WPA association state (string),
+    "link_speed": link speed in MBps (int),
+    "mac_address": this device's WiFi interface MAC (string),
+    XXX "ip_address": this device's IP address (XXX int, byte quadruples reversed!),
+    XXX "network_id": XXX (int),
+    "hidden_ssid": True if the SSID is not broadcast (bool)
+  }
   """
 
   wifi_conn = sensorlib.request_data(sensor_socket, 'wifiGetConnectionInfo', [])
@@ -207,15 +207,6 @@ def do_wifi_scan():
   <Purpose>
   Return WiFi connection info on this device. Calls 
   sensorlib.request_data(sensor_socket, 'wifiGetScanResults', []).
-  Return WiFi scan results in a list of dicts of this format, 
-  with one dict for each network found:
-  {
-    "ssid": network SSID (string),
-    "bssid": network BSSID, i.e. MAC address (string),
-    "frequency": frequency in MHz (int),
-    "level": received signal strength in dBm (negative int),
-    "capabilities": security features supported by the network (string)
-  }
 
   <Arguments>
   None
@@ -230,7 +221,15 @@ def do_wifi_scan():
   Scan the WiFi network from the device. 
 
   <Returns>
-  wifi_data as a HUGE dict.
+  WiFi scan results wifi_data as a HUGE dict of this format, 
+  with one dict for each network found:
+  {
+    "ssid": network SSID (string),
+    "bssid": network BSSID, i.e. MAC address (string),
+    "frequency": frequency in MHz (int),
+    "level": received signal strength in dBm (negative int),
+    "capabilities": security features supported by the network (string)
+  }
 
   """
 
