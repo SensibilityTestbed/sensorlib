@@ -52,5 +52,15 @@ CHILD_CONTEXT_DEF["do_wifi_scan"] = {
     "target": getsensor.do_wifi_scan,
 }
 
+
+CHILD_CONTEXT_DEF["get_battery_info"] = {
+    "type": "func",
+    "args": None,
+    "return": dict,
+    "exceptions": "any",
+    "target": getsensor.get_battery_info,
+}
+
+
 secure_dispatch_module()
 

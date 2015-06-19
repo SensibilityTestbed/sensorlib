@@ -20,6 +20,11 @@ sensorlib = dy_import_module("sensorlib.r2py")
 port = sensorlib.get_connectionport()
 sensor_socket = sensorlib.getconnection(port)
 
+class BatteryNotFoundException(RepyException):
+  """This exception gets raised when location sensor returns no results.
+  """
+  pass
+
 
 class LocationNotFoundException(RepyException):
   """This exception gets raised when location sensor returns no results.
@@ -239,3 +244,55 @@ def do_wifi_scan():
   # we do not need to stop scan (it stops itself after scan is done)
   # convert unicode format to ASCII
   return unicode_scrubber.scrub(wifi_data)
+
+
+def get_battery_info():
+  """
+  <Purpose>
+    Get battery data from a devices. Calls sensorlib.request_data(sensor_socket, 
+    'readBatteryData', []). The battery information is returned as a dict.
+
+  <Arguments>
+    None
+
+  <Exceptions>
+    BatteryNotFoundException (descends from RepyException) when no battery 
+    is found on the device. 
+
+  <Side Effects>
+    When BatteryNotFoundException is raised, the user of this method cannot
+    get any battery information.
+
+  <Resource Consumption>
+    Battery information lookup. 
+
+  <Returns>
+    location as a dict, such as {u'status': 3, u'temperature': 257, u'level': 
+    99, u'battery_present': True, u'plugged': 2, u'health': 2, u'voltage': 
+    4186, u'technology': u'Li-ion'}.
+    Return values for status: 1 - unknown; 2 - charging; 3 - discharging; 
+      4 - not charging; 5 - full.
+    Return values for temperature: in tenths of a degree Centigrade. E.g.,
+      257 is 25.7 celcius.
+    Return values for level: in percent.
+    Return values for plugged: -1 - unknown; 0 - unplugged; 1 - power 
+      source is an AC charger; 2 - power source is a USB port.
+    Return values for health: 1 - unknown; 2 - good; 3 - overheat; 4 - dead;
+      5 - over voltage; 6 - unspecified failure.
+    Return values for voltage: in millivolts.
+    
+  """
+
+  # start battery information lookup 
+  sensorlib.request_data(sensor_socket, 'batteryStartMonitoring', [])
+
+  # if no battery is present, then no battery information can be obtained
+  if sensorlib.request_data(sensor_socket, 'batteryCheckPresent', []) == False:
+    sensorlib.request_data(sensor_socket, 'batteryStopMonitoring', [])
+    raise BatteryNotFoundException
+
+  battery_info = sensorlib.request_data(sensor_socket, 'readBatteryData', [])
+  sensorlib.request_data(sensor_socket, 'batteryStopMonitoring', [])
+
+  return battery_info
+
