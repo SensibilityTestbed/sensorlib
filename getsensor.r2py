@@ -267,7 +267,7 @@ def get_battery_info():
     Battery information lookup. 
 
   <Returns>
-    location as a dict, such as {u'status': 3, u'temperature': 257, u'level': 
+    Battery info as a dict, such as {u'status': 3, u'temperature': 257, u'level': 
     99, u'battery_present': True, u'plugged': 2, u'health': 2, u'voltage': 
     4186, u'technology': u'Li-ion'}.
     Return values for status: 1 - unknown; 2 - charging; 3 - discharging; 
