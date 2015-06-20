@@ -62,5 +62,14 @@ CHILD_CONTEXT_DEF["get_battery_info"] = {
 }
 
 
+CHILD_CONTEXT_DEF["get_bluetooth_info"] = {
+    "type": "func",
+    "args": None,
+    "return": dict,
+    "exceptions": "any",
+    "target": getsensor.get_bluetooth_info,
+}
+
+
 secure_dispatch_module()
 

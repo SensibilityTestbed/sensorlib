@@ -296,3 +296,39 @@ def get_battery_info():
 
   return battery_info
 
+
+def get_bluetooth_info():
+  """
+  <Purpose>
+    Get bluetooth data from a devices. Calls sensorlib.request_data(sensor_socket, 
+    'checkBluetoothState'/'bluetoothGetScanMode'/'bluetoothGetLocalName', []). 
+    The bluetooth information is returned as a dict.
+
+  <Arguments>
+    None
+
+  <Exceptions>
+    None. 
+
+  <Side Effects>
+    When bluetooth is not enabled, the user of this method cannot get any 
+    bluetooth information.
+
+  <Resource Consumption>
+    Bluetooth information lookup. 
+
+  <Returns>
+    Bluetooth info as a dict, such as {'state': True, 'scan_mode': 3, 
+    'local_name': 'GT1000'}.
+    Return values for scan_mode: -1 - when Bluetooth is disabled; 
+    0 - if non discoverable and non connectable; 1 - connectable 
+    non discoverable; 3 - connectable and discoverable.
+    
+  """
+
+  state = sensorlib.request_data(sensor_socket, 'checkBluetoothState', [])
+  scan_mode = sensorlib.request_data(sensor_socket, 'bluetoothGetScanMode', [])
+  local_name = sensorlib.request_data(sensor_socket, 'bluetoothGetLocalName', [])
+
+  bluetooth_info = {'state': state, 'scan_mode': scan_mode, 'local_name': local_name}
+  return bluetooth_info
