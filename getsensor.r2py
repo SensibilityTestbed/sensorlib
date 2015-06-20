@@ -20,6 +20,11 @@ sensorlib = dy_import_module("sensorlib.r2py")
 port = sensorlib.get_connectionport()
 sensor_socket = sensorlib.getconnection(port)
 
+class BatteryNotFoundException(RepyException):
+  """This exception gets raised when location sensor returns no results.
+  """
+  pass
+
 
 class LocationNotFoundException(RepyException):
   """This exception gets raised when location sensor returns no results.
@@ -30,30 +35,30 @@ class LocationNotFoundException(RepyException):
 def get_location():
   """
   <Purpose>
-  Get original location data from GPS or network or passive. Calls 
-  sensorlib.request_data(sensor_socket, 'readLocation', []). The location
-  information is returned as a dict, such as {u'network': {u'bearing': 0, 
-  u'altitude': 0, u'time': x, u'longitude': x, u'provider': u'network', 
-  u'latitude': x, u'speed': 0, u'accuracy': x}}. This is converted to 
-  ASCII using unicode_scrubber.
+    Get original location data from GPS or network or passive. Calls 
+    sensorlib.request_data(sensor_socket, 'readLocation', []). The location
+    information is returned as a dict, which is converted to ASCII 
+    using unicode_scrubber.
 
   <Arguments>
-  None
+    None
 
   <Exceptions>
-  LocationNotFoundException (descends from RepyException) when no location 
-  information is found. 
+    LocationNotFoundException (descends from RepyException) when no location 
+    information is found. 
 
   <Side Effects>
-  When LocationNotFoundException is raised, the user of this method needs 
-  to try several times. If this still fails, then should try 
-  get_lastknown_location().
+    When LocationNotFoundException is raised, the user of this method needs 
+    to try several times. If this still fails, then should try 
+    get_lastknown_location().
 
   <Resource Consumption>
-  GPS or network location lookup. 
+    GPS or network location lookup. 
 
   <Returns>
-  location as a dict.
+    location as a dict, such as {u'network': {u'bearing': 0, u'altitude': 0, 
+    u'time': x, u'longitude': x, u'provider': u'network', u'latitude': x, 
+    u'speed': 0, u'accuracy': x}}.
   
   """
 
@@ -86,12 +91,8 @@ def get_lastknown_location():
   <Purpose>
   Get original _last-known_ location data from GPS/network/passive. Calls 
   sensorlib.request_data(sensor_socket, 'getLastKnownLocation', []). The 
-  location information is returned as a dict, such as {u'passive': 
-  {u'bearing': 0, u'altitude': 0, u'time': x, u'longitude': x, u'provider': 
-  u'network', u'latitude': s, u'speed': 0, u'accuracy': x}, u'network': 
-  {u'bearing': 0, u'altitude': 0, u'time': x, u'longitude': x, u'provider': 
-  u'network', u'latitude': x, u'speed': 0, u'accuracy': x}, u'gps': None}. 
-  This is converted to ASCII using unicode_scrubber.
+  location information is returned as a dict, which is converted to ASCII 
+  using unicode_scrubber.
 
   <Arguments>
   None
@@ -109,6 +110,11 @@ def get_lastknown_location():
   <Returns>
   location as a dict with three keys: passive, network, and gps. Each key 
   value is a dict in the same format as the value returned by get_location().
+  For example, {u'passive': {u'bearing': 0, u'altitude': 0, u'time': x, 
+  u'longitude': x, u'provider': u'network', u'latitude': s, u'speed': 0, 
+  u'accuracy': x}, u'network': {u'bearing': 0, u'altitude': 0, u'time': x, 
+  u'longitude': x, u'provider': u'network', u'latitude': x, u'speed': 0, 
+  u'accuracy': x}, u'gps': None}
 
   """
 
@@ -166,19 +172,7 @@ def get_wifi_connection_info():
   """
   <Purpose>
   Return information about the WiFi network currently connected to. Calls 
-  sensorlib.request_data(sensor_socket, 'wifiGetConnectionInfo', []). The 
-  WiFi information is returned as a dict of this format:
-  {
-    "ssid": network SSID (string),
-    "bssid": network BSSID, i.e. MAC address (string),
-    "rssi": received signal strength in dBm (negative int),
-    "supplicant_state": current WPA association state (string),
-    "link_speed": link speed in MBps (int),
-    "mac_address": this device's WiFi interface MAC (string),
-    XXX "ip_address": this device's IP address (XXX int, byte quadruples reversed!),
-    XXX "network_id": XXX (int),
-    "hidden_ssid": True if the SSID is not broadcast (bool)
-  }
+  sensorlib.request_data(sensor_socket, 'wifiGetConnectionInfo', []). 
 
   <Arguments>
   None
@@ -193,7 +187,18 @@ def get_wifi_connection_info():
   Lookup WiFi connection information on the device. 
 
   <Returns>
-  wifi_conn as a dict.
+  wifi_conn as a dict, and is returned as a dict of this format:
+  {
+    "ssid": network SSID (string),
+    "bssid": network BSSID, i.e. MAC address (string),
+    "rssi": received signal strength in dBm (negative int),
+    "supplicant_state": current WPA association state (string),
+    "link_speed": link speed in MBps (int),
+    "mac_address": this device's WiFi interface MAC (string),
+    XXX "ip_address": this device's IP address (XXX int, byte quadruples reversed!),
+    XXX "network_id": XXX (int),
+    "hidden_ssid": True if the SSID is not broadcast (bool)
+  }
   """
 
   wifi_conn = sensorlib.request_data(sensor_socket, 'wifiGetConnectionInfo', [])
@@ -207,15 +212,6 @@ def do_wifi_scan():
   <Purpose>
   Return WiFi connection info on this device. Calls 
   sensorlib.request_data(sensor_socket, 'wifiGetScanResults', []).
-  Return WiFi scan results in a list of dicts of this format, 
-  with one dict for each network found:
-  {
-    "ssid": network SSID (string),
-    "bssid": network BSSID, i.e. MAC address (string),
-    "frequency": frequency in MHz (int),
-    "level": received signal strength in dBm (negative int),
-    "capabilities": security features supported by the network (string)
-  }
 
   <Arguments>
   None
@@ -230,7 +226,15 @@ def do_wifi_scan():
   Scan the WiFi network from the device. 
 
   <Returns>
-  wifi_data as a HUGE dict.
+  WiFi scan results wifi_data as a HUGE dict of this format, 
+  with one dict for each network found:
+  {
+    "ssid": network SSID (string),
+    "bssid": network BSSID, i.e. MAC address (string),
+    "frequency": frequency in MHz (int),
+    "level": received signal strength in dBm (negative int),
+    "capabilities": security features supported by the network (string)
+  }
 
   """
 
@@ -240,3 +244,91 @@ def do_wifi_scan():
   # we do not need to stop scan (it stops itself after scan is done)
   # convert unicode format to ASCII
   return unicode_scrubber.scrub(wifi_data)
+
+
+def get_battery_info():
+  """
+  <Purpose>
+    Get battery data from a devices. Calls sensorlib.request_data(sensor_socket, 
+    'readBatteryData', []). The battery information is returned as a dict.
+
+  <Arguments>
+    None
+
+  <Exceptions>
+    BatteryNotFoundException (descends from RepyException) when no battery 
+    is found on the device. 
+
+  <Side Effects>
+    When BatteryNotFoundException is raised, the user of this method cannot
+    get any battery information.
+
+  <Resource Consumption>
+    Battery information lookup. 
+
+  <Returns>
+    Battery info as a dict, such as {u'status': 3, u'temperature': 257, u'level': 
+    99, u'battery_present': True, u'plugged': 2, u'health': 2, u'voltage': 
+    4186, u'technology': u'Li-ion'}.
+    Return values for status: 1 - unknown; 2 - charging; 3 - discharging; 
+      4 - not charging; 5 - full.
+    Return values for temperature: in tenths of a degree Centigrade. E.g.,
+      257 is 25.7 celcius.
+    Return values for level: in percent.
+    Return values for plugged: -1 - unknown; 0 - unplugged; 1 - power 
+      source is an AC charger; 2 - power source is a USB port.
+    Return values for health: 1 - unknown; 2 - good; 3 - overheat; 4 - dead;
+      5 - over voltage; 6 - unspecified failure.
+    Return values for voltage: in millivolts.
+    
+  """
+
+  # start battery information lookup 
+  sensorlib.request_data(sensor_socket, 'batteryStartMonitoring', [])
+
+  # if no battery is present, then no battery information can be obtained
+  if sensorlib.request_data(sensor_socket, 'batteryCheckPresent', []) == False:
+    sensorlib.request_data(sensor_socket, 'batteryStopMonitoring', [])
+    raise BatteryNotFoundException
+
+  battery_info = sensorlib.request_data(sensor_socket, 'readBatteryData', [])
+  sensorlib.request_data(sensor_socket, 'batteryStopMonitoring', [])
+
+  return battery_info
+
+
+def get_bluetooth_info():
+  """
+  <Purpose>
+    Get bluetooth data from a devices. Calls sensorlib.request_data(sensor_socket, 
+    'checkBluetoothState'/'bluetoothGetScanMode'/'bluetoothGetLocalName', []). 
+    The bluetooth information is returned as a dict.
+
+  <Arguments>
+    None
+
+  <Exceptions>
+    None. 
+
+  <Side Effects>
+    When bluetooth is not enabled, the user of this method cannot get any 
+    bluetooth information.
+
+  <Resource Consumption>
+    Bluetooth information lookup. 
+
+  <Returns>
+    Bluetooth info as a dict, such as {'state': True, 'scan_mode': 3, 
+    'local_name': 'GT1000'}.
+    Return values for scan_mode: -1 - when Bluetooth is disabled; 
+    0 - if non discoverable and non connectable; 1 - connectable 
+    non discoverable; 3 - connectable and discoverable.
+    
+  """
+
+  state = sensorlib.request_data(sensor_socket, 'checkBluetoothState', [])
+  scan_mode = sensorlib.request_data(sensor_socket, 'bluetoothGetScanMode', [])
+  local_name = sensorlib.request_data(sensor_socket, 'bluetoothGetLocalName', [])
+
+  bluetooth_info = {'state': state, 'scan_mode': scan_mode, 'local_name': local_name}
+  return bluetooth_info
