@@ -21,7 +21,7 @@ port = sensorlib.get_connectionport()
 sensor_socket = sensorlib.getconnection(port)
 
 class BatteryNotFoundException(RepyException):
-  """This exception gets raised when location sensor returns no results.
+  """This exception gets raised when no battery is found on the device.
   """
   pass
 
@@ -31,6 +31,16 @@ class LocationNotFoundException(RepyException):
   """
   pass
 
+
+class SIMNotFoundException(RepyException):
+  """This exception gets raised when no SIM card is found on the device.
+  In this case, no cellular information can be found.
+  """
+  pass
+
+##################################################
+############## location interface  ###############
+##################################################
 
 def get_location():
   """
@@ -142,6 +152,11 @@ def get_lastknown_location():
   return location
 
 
+
+##################################################
+############## WiFi interface  ###################
+##################################################
+
 def is_wifi_enabled():
   """
   <Purpose>
@@ -246,6 +261,10 @@ def do_wifi_scan():
   return unicode_scrubber.scrub(wifi_data)
 
 
+##################################################
+############## battery interface  ################
+##################################################
+
 def get_battery_info():
   """
   <Purpose>
@@ -297,6 +316,11 @@ def get_battery_info():
   return battery_info
 
 
+
+##################################################
+############## bluetooth interface  ##############
+##################################################
+
 def get_bluetooth_info():
   """
   <Purpose>
@@ -332,3 +356,252 @@ def get_bluetooth_info():
 
   bluetooth_info = {'state': state, 'scan_mode': scan_mode, 'local_name': local_name}
   return bluetooth_info
+
+
+
+##################################################
+############## cellular interface  ###############
+##################################################
+
+def is_roaming():
+  """
+  <Purpose>
+    Return if a phone is roaming (True/False).  Calls sensorlib.request_data(
+    sensor_socket, 'checkNetworkRoaming', []). 
+
+  <Arguments>
+    None
+
+  <Exceptions>
+    SIMNotFoundException. 
+
+  <Side Effects>
+    When no SIM card is found, no cellular information can be obtained.
+
+  <Resource Consumption>
+    Lookup if phone is roaming. 
+
+  <Returns>
+    A boolean vaiable indicating if the phone is roaming. 
+  """
+
+  if sensorlib.request_data(sensor_socket, 'getSimState', []) == 'absent':
+    # when no SIM card is found on the device, cellular information is
+    # not meaningful
+    raise SIMNotFoundException
+
+  return sensorlib.request_data(sensor_socket, 'checkNetworkRoaming', [])  
+
+
+
+def get_cellular_provider_info():
+  """
+  <Purpose>
+    Get cellular provider info from a devices. Calls sensorlib.request_data(
+    sensor_socket, 'getNetworkOperator'/'getNetworkOperatorName', []). The 
+    cellular network information, current cellular operator code (MNC+MCC), 
+    and operator name, is returned as a dict.
+
+  <Arguments>
+    None
+
+  <Exceptions>
+    SIMNotFoundException. 
+
+  <Side Effects>
+    When no SIM card is found, no cellular provider info can be obtained.
+
+  <Resource Consumption>
+    Cellular network provider information lookup. 
+
+  <Returns>
+    Cellular provider info as a dict, such as {‘network_operator’: 310260, 
+    ‘network_operator_name’: ‘T-Mobile’}.
+    
+  """
+
+  if sensorlib.request_data(sensor_socket, 'getSimState', []) == 'absent':
+    # when no SIM card is found on the device, cellular information is
+    # not meaningful
+    raise SIMNotFoundException
+
+  network_operator = sensorlib.request_data(sensor_socket, 
+                                            'getNetworkOperator', [])
+  network_operator_name = sensorlib.request_data(sensor_socket, 
+                                            'getNetworkOperatorName', [])
+
+  cellular_network_info = {'network_operator': network_operator, 
+                           'network_operator_name': network_operator_name}
+  return cellular_network_info
+
+
+
+def get_cell_info():
+  """
+  <Purpose>
+    Get cellular network info from a devices. Calls sensorlib.request_data(
+    sensor_socket, 'getCellLocation'/'getNeighboringCellInfo'/'getNetworkType', 
+    []). The cellular network information, current cellular cell ID, 
+    neighboring cells, is returned as a dict.
+
+  <Arguments>
+    None
+
+  <Exceptions>
+    SIMNotFoundException. 
+
+  <Side Effects>
+    When no SIM card is found, no cellular information can be obtained.
+
+  <Resource Consumption>
+    Cellular network information lookup. 
+
+  <Returns>
+    Cellular info as a dict, such as {‘cellID’: {‘lac’: 32115, ‘cid’: 26742}, 
+    ‘neighboring_cell’: [{‘rssi’: 11, ‘cid’: 26741}, {‘rssi’: 9, ‘cid’: 40151}, 
+    {‘rssi’: 5, ‘cid’: 40153}]}.
+    
+  """
+
+  if sensorlib.request_data(sensor_socket, 'getSimState', []) == 'absent':
+    # when no SIM card is found on the device, cellular information is
+    # not meaningful
+    raise SIMNotFoundException
+
+  # get details about cell ID, e.g., {‘lac’: 32115, ‘cid’: 26742}
+  # cid = Cell ID, lac = location area code
+  cellID = sensorlib.request_data(sensor_socket, 
+                                            'getCellLocation', [])
+
+  # get information about neighboring cells in a list, e.g.,
+  # [{‘rssi’: 11, ‘cid’: 26741}, {‘rssi’: 9, ‘cid’: 40151}, 
+  #  {‘rssi’: 5, ‘cid’: 40153}]
+  neighboring_cell = sensorlib.request_data(sensor_socket, 
+                                            'getNeighboringCellInfo', [])
+
+  cellular_info = {'cellID': cellID, 'neighboring_cell': neighboring_cell}
+  return cellula_info
+
+
+def get_SIM_info():
+  """
+  <Purpose>
+    Get SIM card info from a devices. Calls sensorlib.request_data(
+    sensor_socket, 'getSimState'/'getSimOperator'/'getSimOperatorName'
+    /'getSimCountryIso', []). The SIM card information, current SIM 
+    card state, SIM card operator, SIM card operator name, SIM card
+    country code, is returned as a dict.
+
+  <Arguments>
+    None
+
+  <Exceptions>
+    SIMNotFoundException. 
+
+  <Side Effects>
+    When no SIM card is found, no information can be obtained.
+
+  <Resource Consumption>
+    SIM card information lookup. 
+
+  <Returns>
+    SIM card info as a dict, such as {‘SIM_operator’: 310260, 
+    ‘SIM_operator_name’: ‘’, ‘SIM_country_code’: ‘us’, ‘SIM_state’: 
+    ‘ready’}.
+    
+  """
+
+  SIM_state = sensorlib.request_data(sensor_socket, 'getSimState', [])
+  
+  if SIM_state == 'absent':
+    # when no SIM card is found on the device, cellular information is
+    # not meaningful
+    raise SIMNotFoundException
+
+  SIM_operator = sensorlib.request_data(sensor_socket, 
+                                        'getSimOperator', [])
+  SIM_operator_name = sensorlib.request_data(sensor_socket, 
+                                             'getSimOperatorName', [])
+  SIM_country_code = sensorlib.request_data(sensor_socket, 
+                                            'getSimCountryIso', [])
+
+  SIM_info = {'SIM_state': SIM_state, 'SIM_operator': SIM_operator, 
+              'SIM_operator_name': SIM_operator_name, 
+              'SIM_country_code': SIM_country_code}
+  return SIM_info
+
+
+def get_phone_info():
+  """
+  <Purpose>
+    Get phone info from a devices. Calls sensorlib.request_data(
+    sensor_socket, 'readPhoneState'/'getPhoneType'/'getNetworkType', 
+    []). The phone information, current phone state, phone type, 
+    network type, is returned as a dict.
+
+  <Arguments>
+    None
+
+  <Exceptions>
+    None. 
+
+  <Side Effects>
+    None.
+
+  <Resource Consumption>
+    Phone information lookup. 
+
+  <Returns>
+    Phone info as a dict, such as {‘phone_state’: {‘incomingNumber’: 
+    ‘’, ‘state’: ‘idle’}, ‘phone_type’: ‘gsm’, ‘network_type’: 'edge'}.
+    When no SIM card is available, the phone info dict would be, e.g., 
+    {‘phone_state’: {}, ‘phone_type’: ‘gsm’, ‘network_type’: 'unknown'}.
+    
+  """
+  sensorlib.request_data(sensor_socket, 'startTrackingPhoneState', [])
+
+  phone_state = sensorlib.request_data(sensor_socket, 
+                                            'readPhoneState', [])
+  phone_type = sensorlib.request_data(sensor_socket, 
+                                            'getPhoneType', [])
+  network_type = sensorlib.request_data(sensor_socket, 
+                                            'getNetworkType', [])
+
+  sensorlib.request_data(sensor_socket, 'stopTrackingPhoneState', [])
+  
+  phone_info = {'phone_state': phone_state, 'phone_type': phone_type, 
+                'network_type': network_type}
+  return phone_info
+
+
+def get_cellular_signal_strengths{}
+  """
+  <Purpose>
+    Get the current signal strengths, in dictionary of gsm_signal_strength.
+    Calls sensorlib.request_data(sensor_socket, 'readSignalStrengths', []).
+
+  <Arguments>
+    None
+
+  <Exceptions>
+    None. 
+
+  <Side Effects>
+    None.
+
+  <Resource Consumption>
+    Current signal strengths lookup. 
+
+  <Returns>
+    Signal strengths info as a dict, such as {"gsm_signal_strength": 
+    8, "evdo_ecio": -1, "gsm_bit_error_rate": -1, "cdma_ecio": -1, 
+    "cdma_dbm": -1, "evdo_dbm": -1}.
+  """
+
+  sensorlib.request_data(sensor_socket, 'startTrackingSignalStrengths', [])
+  cellular_signal_strengths = sensorlib.request_data(sensor_socket, 
+                                                     'readSignalStrengths', [])
+  sensorlib.request_data(sensor_socket, 'stopTrackingSignalStrengths', [])
+
+  return cellular_signal_strengths
+

@@ -71,5 +71,60 @@ CHILD_CONTEXT_DEF["get_bluetooth_info"] = {
 }
 
 
+CHILD_CONTEXT_DEF["is_roaming"] = {
+    "type": "func",
+    "args": None,
+    "return": dict,
+    "exceptions": "any",
+    "target": getsensor.is_roaming,
+}
+
+
+
+CHILD_CONTEXT_DEF["get_cellular_provider_info"] = {
+    "type": "func",
+    "args": None,
+    "return": dict,
+    "exceptions": "any",
+    "target": getsensor.get_cellular_provider_info,
+}
+
+
+CHILD_CONTEXT_DEF["get_cell_info"] = {
+    "type": "func",
+    "args": None,
+    "return": dict,
+    "exceptions": "any",
+    "target": getsensor.get_cell_info,
+}
+
+
+CHILD_CONTEXT_DEF["get_SIM_info"] = {
+    "type": "func",
+    "args": None,
+    "return": dict,
+    "exceptions": "any",
+    "target": getsensor.get_SIM_info,
+}
+
+
+CHILD_CONTEXT_DEF["get_phone_info"] = {
+    "type": "func",
+    "args": None,
+    "return": dict,
+    "exceptions": "any",
+    "target": getsensor.get_phone_info,
+}
+
+
+CHILD_CONTEXT_DEF["get_cellular_signal_strengths"] = {
+    "type": "func",
+    "args": None,
+    "return": dict,
+    "exceptions": "any",
+    "target": getsensor.get_cellular_signal_strengths,
+}
+
+
 secure_dispatch_module()
 
