@@ -126,5 +126,41 @@ CHILD_CONTEXT_DEF["get_cellular_signal_strengths"] = {
 }
 
 
+CHILD_CONTEXT_DEF["get_mode_settings"] = {
+    "type": "func",
+    "args": None,
+    "return": dict,
+    "exceptions": "any",
+    "target": getsensor.get_mode_settings,
+}
+
+
+CHILD_CONTEXT_DEF["get_screen_settings"] = {
+    "type": "func",
+    "args": None,
+    "return": dict,
+    "exceptions": "any",
+    "target": getsensor.get_screen_settings,
+}
+
+
+CHILD_CONTEXT_DEF["get_media_volume"] = {
+    "type": "func",
+    "args": None,
+    "return": dict,
+    "exceptions": "any",
+    "target": getsensor.get_media_volume,
+}
+
+
+CHILD_CONTEXT_DEF["get_ringer_volume"] = {
+    "type": "func",
+    "args": None,
+    "return": dict,
+    "exceptions": "any",
+    "target": getsensor.get_ringer_volume,
+}
+
+
 secure_dispatch_module()
 

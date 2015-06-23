@@ -431,7 +431,7 @@ def get_cellular_provider_info():
                                             'getNetworkOperatorName', [])
 
   cellular_network_info = {'network_operator': network_operator, 
-                           'network_operator_name': network_operator_name}
+    'network_operator_name': unicode_scrubber.scrub(network_operator_name)}
   return cellular_network_info
 
 
@@ -526,7 +526,7 @@ def get_SIM_info():
                                             'getSimCountryIso', [])
 
   SIM_info = {'SIM_state': SIM_state, 'SIM_operator': SIM_operator, 
-              'SIM_operator_name': SIM_operator_name, 
+              'SIM_operator_name': unicode_scrubber.scrub(SIM_operator_name), 
               'SIM_country_code': SIM_country_code}
   return SIM_info
 
@@ -574,7 +574,7 @@ def get_phone_info():
   return phone_info
 
 
-def get_cellular_signal_strengths()
+def get_cellular_signal_strengths():
   """
   <Purpose>
     Get the current signal strengths, in dictionary of gsm_signal_strength.
@@ -604,4 +604,147 @@ def get_cellular_signal_strengths()
   sensorlib.request_data(sensor_socket, 'stopTrackingSignalStrengths', [])
 
   return cellular_signal_strengths
+
+
+##################################################
+############## settings interface  ###############
+##################################################
+
+def get_mode_settings():
+  """
+  <Purpose>
+    Get the current settings about mode (airplane mode, ringer silent mode, 
+    vibrate mode), in dictionary of mode_settings. Calls sensorlib.
+    request_data(sensor_socket, 'checkAirplaneMode'/'checkRingerSilentMode'/
+    'getVibrateMode', []).
+
+  <Arguments>
+    None
+
+  <Exceptions>
+    None. 
+
+  <Side Effects>
+    None.
+
+  <Resource Consumption>
+    Current mode settings lookup. 
+
+  <Returns>
+    Signal strengths info as a dict, such as {"airplane_mode": False, 
+    "ringer_silent_mode": True, "vibrate_mode": True}.
+  """
+
+  airplane_mode = sensorlib.request_data(sensor_socket, 'checkAirplaneMode', []) 
+  ringer_silent_mode = sensorlib.request_data(sensor_socket, 
+                                              'checkRingerSilentMode', []) 
+  vibrate_mode = sensorlib.request_data(sensor_socket, 'getVibrateMode', [])
+
+  mode_settings = {'airplane_mode': airplane_mode, 'ringer_silent_mode':
+                   ringer_silent_mode, 'vibrate_mode': vibrate_mode}
+  return mode_settings
+
+
+def get_screen_settings():
+  """
+  <Purpose>
+    Get the current settings about screen (screen on/off, screen brightness, 
+    screen timeout), in dictionary of screen_settings. Calls sensorlib.
+    request_data(sensor_socket, 'checkScreenOn'/'getScreenBrightness'/
+    'getScreenTimeout', []).
+
+  <Arguments>
+    None
+
+  <Exceptions>
+    None. 
+
+  <Side Effects>
+    None.
+
+  <Resource Consumption>
+    Current screen settings lookup. 
+
+  <Returns>
+    Signal strengths info as a dict, such as {"screen_on": True, 
+    "screen_brightness": 200, "screen_timeout": 60}.
+  """
+
+  screen_on = sensorlib.request_data(sensor_socket, 'checkScreenOn', []) 
+  screen_brightness = sensorlib.request_data(sensor_socket, 
+                                              'getScreenBrightness', []) 
+  screen_timeout = sensorlib.request_data(sensor_socket, 
+                                          'getScreenTimeout', [])
+
+  screen_settings = {'screen_on': screen_on, 'screen_brightness':
+                   screen_brightness, 'screen_timeout': screen_timeout}
+  return screen_settings
+
+
+
+def get_media_volume():
+  """
+  <Purpose>
+    Get the current settings about media volume (current media volume, 
+    maximum media volume), in dictionary of media_volume. Calls sensorlib.
+    request_data(sensor_socket, 'getMediaVolume'/'getMaxMediaVolume', []).
+
+  <Arguments>
+    None
+
+  <Exceptions>
+    None. 
+
+  <Side Effects>
+    None.
+
+  <Resource Consumption>
+    Current media volume settings lookup. 
+
+  <Returns>
+    Signal strengths info as a dict, such as {"media_volume": xx, 
+    "max_media_volume": xxx}.
+  """
+
+  media_volume = sensorlib.request_data(sensor_socket, 'getMediaVolume', []) 
+  max_media_volume = sensorlib.request_data(sensor_socket, 
+                                              'getMaxMediaVolume', []) 
+ 
+  media_volume = {'media_volume': media_volume, 'max_media_volume':
+                     max_media_volume}
+  return media_volume
+
+
+
+def get_ringer_volume():
+  """
+  <Purpose>
+    Get the current settings about ringer volume (current ringer volume, 
+    maximum ringer volume), in dictionary of ringer_volume. Calls sensorlib.
+    request_data(sensor_socket, 'getRingerVolume'/'getMaxRingerVolume', []).
+
+  <Arguments>
+    None
+
+  <Exceptions>
+    None. 
+
+  <Side Effects>
+    None.
+
+  <Resource Consumption>
+    Current ringer volume settings lookup. 
+
+  <Returns>
+    Signal strengths info as a dict, such as {"ringer_volume": xx, 
+    "max_ringer_volume": xxx}.
+  """
+
+  ringer_volume = sensorlib.request_data(sensor_socket, 'getRingerVolume', []) 
+  max_ringer_volume = sensorlib.request_data(sensor_socket, 
+                                              'getMaxRingerVolume', []) 
+ 
+  ringer_volume = {'ringer_volume': ringer_volume, 'max_ringer_volume':
+                     max_ringer_volume}
+  return ringer_volume
 
