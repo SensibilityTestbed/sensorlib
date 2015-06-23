@@ -286,9 +286,9 @@ def get_battery_info():
     Battery information lookup. 
 
   <Returns>
-    Battery info as a dict, such as {u'status': 3, u'temperature': 257, u'level': 
-    99, u'battery_present': True, u'plugged': 2, u'health': 2, u'voltage': 
-    4186, u'technology': u'Li-ion'}.
+    Battery info as a dict, such as {'status': 3, 'temperature': 257, 'level': 
+    99, 'battery_present': True, 'plugged': 2, 'health': 2, 'voltage': 
+    4186, 'technology': 'Li-ion'}.
     Return values for status: 1 - unknown; 2 - charging; 3 - discharging; 
       4 - not charging; 5 - full.
     Return values for temperature: in tenths of a degree Centigrade. E.g.,
@@ -313,7 +313,7 @@ def get_battery_info():
   battery_info = sensorlib.request_data(sensor_socket, 'readBatteryData', [])
   sensorlib.request_data(sensor_socket, 'batteryStopMonitoring', [])
 
-  return battery_info
+  return unicode_scrubber.scrub(battery_info)
 
 
 
@@ -343,7 +343,7 @@ def get_bluetooth_info():
 
   <Returns>
     Bluetooth info as a dict, such as {'state': True, 'scan_mode': 3, 
-    'local_name': 'GT1000'}.
+    'local_name': 'GT-P1000'}.
     Return values for scan_mode: -1 - when Bluetooth is disabled; 
     0 - if non discoverable and non connectable; 1 - connectable 
     non discoverable; 3 - connectable and discoverable.
@@ -355,7 +355,7 @@ def get_bluetooth_info():
   local_name = sensorlib.request_data(sensor_socket, 'bluetoothGetLocalName', [])
 
   bluetooth_info = {'state': state, 'scan_mode': scan_mode, 'local_name': local_name}
-  return bluetooth_info
+  return unicode_scrubber.scrub(bluetooth_info)
 
 
 
@@ -431,8 +431,8 @@ def get_cellular_provider_info():
                                             'getNetworkOperatorName', [])
 
   cellular_network_info = {'network_operator': network_operator, 
-    'network_operator_name': unicode_scrubber.scrub(network_operator_name)}
-  return cellular_network_info
+                           'network_operator_name': network_operator_name}
+  return unicode_scrubber.scrub(cellular_network_info)
 
 
 
@@ -480,7 +480,7 @@ def get_cell_info():
                                             'getNeighboringCellInfo', [])
 
   cellular_info = {'cellID': cellID, 'neighboring_cell': neighboring_cell}
-  return cellular_info
+  return unicode_scrubber.scrub(cellular_info)
 
 
 def get_SIM_info():
@@ -526,9 +526,9 @@ def get_SIM_info():
                                             'getSimCountryIso', [])
 
   SIM_info = {'SIM_state': SIM_state, 'SIM_operator': SIM_operator, 
-              'SIM_operator_name': unicode_scrubber.scrub(SIM_operator_name), 
+              'SIM_operator_name': SIM_operator_name, 
               'SIM_country_code': SIM_country_code}
-  return SIM_info
+  return unicode_scrubber.scrub(SIM_info)
 
 
 def get_phone_info():
@@ -571,7 +571,7 @@ def get_phone_info():
   
   phone_info = {'phone_state': phone_state, 'phone_type': phone_type, 
                 'network_type': network_type}
-  return phone_info
+  return unicode_scrubber.scrub(phone_info)
 
 
 def get_cellular_signal_strengths():
@@ -603,7 +603,7 @@ def get_cellular_signal_strengths():
                                                      'readSignalStrengths', [])
   sensorlib.request_data(sensor_socket, 'stopTrackingSignalStrengths', [])
 
-  return cellular_signal_strengths
+  return unicode_scrubber.scrub(cellular_signal_strengths)
 
 
 ##################################################
@@ -643,6 +643,7 @@ def get_mode_settings():
   mode_settings = {'airplane_mode': airplane_mode, 'ringer_silent_mode':
                    ringer_silent_mode, 'vibrate_mode': vibrate_mode}
   return mode_settings
+
 
 
 def get_screen_settings():
