@@ -749,3 +749,233 @@ def get_ringer_volume():
                      max_ringer_volume}
   return ringer_volume
 
+
+
+##################################################
+############## sensors interface  ################
+##################################################
+
+def start_sensing(sensor_number, delay_time):
+  """
+  <Purpose>
+    Starts recording sensor data to be available for polling. 
+    Calls sensorlib.request_data(sensor_socket, 'startSensingTimed', 
+    []).
+
+  <Arguments>
+    sensor_number (Integer): 1 = All, 2 = Accelerometer, 
+                             3 = Magnetometer and 4 = Light 
+    delay_time (Integer): Minimum time between readings in ms. 
+
+  <Exceptions>
+    None. 
+
+  <Side Effects>
+    None.
+
+  <Resource Consumption>
+    Starts recording sensor data. 
+
+  <Returns>
+    None.
+  """
+
+  sensorlib.request_data(sensor_socket, 'startSensingTimed', 
+                         [sensor_number, delay_time])
+
+
+
+def stop_sensing():
+  """
+  <Purpose>
+    Stops recording sensor data to be available for polling. Calls 
+    sensorlib.request_data(sensor_socket, 'stopSensing', []).
+
+  <Arguments>
+    None. 
+
+  <Exceptions>
+    None. 
+
+  <Side Effects>
+    None.
+
+  <Resource Consumption>
+    Stops recording sensor data. 
+
+  <Returns>
+    None.
+  """
+
+  sensorlib.request_data(sensor_socket, 'stopSensing', [])
+
+  
+
+def get_sensors():
+   """
+  <Purpose>
+    Get the most recently recorded sensor data (accelerometer, 
+    magnetic and orientation), in dictionary of sensors. Calls 
+    sensorlib.request_data(sensor_socket, 'readSensors', []).
+
+  <Arguments>
+    None
+
+  <Exceptions>
+    None. 
+
+  <Side Effects>
+    None.
+
+  <Resource Consumption>
+    Current sensors (accelerometer, magnetic and orientation) lookup. 
+
+  <Returns>
+    Sensors as a dict, such as {"time": 1.386305361412E9, "roll": 
+    -0.034543427079916, "zforce": 9.959879, "yforce": -0.842759, 
+    "yMag": 164.9375, "xMag": -3.1875, "azimuth": 0.005331491399556398, 
+    "xforce": 0.3439138, "zMag": -67.75, "pitch": 0.08443046659231186, 
+    "accuracy":3}.
+  """
+
+  sensors = sensorlib.request_data(sensor_socket, 'readSensors', [1, 1])
+  return unicode_scrubber.scrub(sensors)
+  
+
+def get_sensors_accuracy():
+  """
+  <Purpose>
+    Get the most recently received accuracy value. Calls 
+    sensorlib.request_data(sensor_socket, 'sensorsGetAccuracy', []).
+
+  <Arguments>
+    None. 
+
+  <Exceptions>
+    None. 
+
+  <Side Effects>
+    None.
+
+  <Resource Consumption>
+    Look up sensor accuracy. 
+
+  <Returns>
+    Returns the most recently received accuracy value, e.g., 3 (highest accuracy).
+  """
+
+  return sensorlib.request_data(sensor_socket, 'sensorsGetAccuracy', [])
+
+
+
+def get_light():
+  """
+  <Purpose>
+    Get the most recently received light value. Calls 
+    sensorlib.request_data(sensor_socket, 'sensorsGetLight', []).
+
+  <Arguments>
+    None. 
+
+  <Exceptions>
+    None. 
+
+  <Side Effects>
+    None.
+
+  <Resource Consumption>
+    Look up light value. 
+
+  <Returns>
+    TODO: what's the return value looks like?
+  """
+
+  return sensorlib.request_data(sensor_socket, 'sensorsGetLight', [])
+
+
+
+def get_acceleration():
+  """
+  <Purpose>
+    Get the most recently received accelerometer value. Calls 
+    sensorlib.request_data(sensor_socket, 'sensorsReadAccelerometer', 
+    []).
+
+  <Arguments>
+    None. 
+
+  <Exceptions>
+    None. 
+
+  <Side Effects>
+    None.
+
+  <Resource Consumption>
+    Look up accelerometer value. 
+
+  <Returns>
+    A list of floats [(acceleration on the) X axis, Y axis, Z axis], 
+    e.g., [0.3830723, -0.8036005, 10.036493].
+  """
+
+  return sensorlib.request_data(sensor_socket, 
+                                'sensorsReadAccelerometer', [])
+
+
+
+def get_magnetic_field():
+  """
+  <Purpose>
+    Get the most recently received magnetic field value. Calls 
+    sensorlib.request_data(sensor_socket, 'sensorsReadMagnetometer', 
+    []).
+
+  <Arguments>
+    None. 
+
+  <Exceptions>
+    None. 
+
+  <Side Effects>
+    None.
+
+  <Resource Consumption>
+    Look up magnetic field value. 
+
+  <Returns>
+    A list of floats [(magnetic field value for) X axis, Y axis, Z 
+    axis], e.g., [29.5, 206.875, -119.625].
+  """
+
+  return sensorlib.request_data(sensor_socket, 
+                                'sensorsReadMagnetometer', [])
+
+
+
+def get_orientation():
+   """
+  <Purpose>
+    Get the most recently received orientation value. Calls 
+    sensorlib.request_data(sensor_socket, 'sensorsReadOrientation', 
+    []).
+
+  <Arguments>
+    None. 
+
+  <Exceptions>
+    None. 
+
+  <Side Effects>
+    None.
+
+  <Resource Consumption>
+    Look up orientation value. 
+
+  <Returns>
+    A list of doubles [azimuth, pitch, roll], e.g., 
+    [-0.17154279351234436, 0.080450139939785, -0.03844258934259415].
+  """
+
+  return sensorlib.request_data(sensor_socket, 
+                                'sensorsReadOrientation', [])
+
