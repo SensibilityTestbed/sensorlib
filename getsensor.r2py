@@ -632,13 +632,22 @@ def get_mode_settings():
 
   <Returns>
     Signal strengths info as a dict, such as {"airplane_mode": False, 
-    "ringer_silent_mode": True, "vibrate_mode": True}.
+    "ringer_silent_mode": True, "vibrate_mode": {'ringer_vibrate': True, 
+    'notification_vibrate': False}}.
   """
 
   airplane_mode = sensorlib.request_data(sensor_socket, 'checkAirplaneMode', []) 
   ringer_silent_mode = sensorlib.request_data(sensor_socket, 
                                               'checkRingerSilentMode', []) 
-  vibrate_mode = sensorlib.request_data(sensor_socket, 'getVibrateMode', [])
+
+  # call to SL4A getVibrateMode: if the argument is true then query 
+  # Ringer setting, else query Notification setting
+  ringer_vibrate = sensorlib.request_data(sensor_socket, 
+                                          'getVibrateMode', [True])
+  notification_vibrate = sensorlib.request_data(sensor_socket, 
+                                                'getVibrateMode', [False])
+  vibrate_mode = {'ringer_vibrate': ringer_vibrate, 
+                  'notification_vibrate': notification_vibrate}
 
   mode_settings = {'airplane_mode': airplane_mode, 'ringer_silent_mode':
                    ringer_silent_mode, 'vibrate_mode': vibrate_mode}
