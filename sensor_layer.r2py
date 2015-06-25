@@ -164,19 +164,19 @@ CHILD_CONTEXT_DEF["get_ringer_volume"] = {
 
 CHILD_CONTEXT_DEF["start_sensing"] = {
     "type": "func",
-    "args": int, int,
-    "return": dict,
+    "args": (int, int),
+    "return": None,
     "exceptions": "any",
-    "target": getsensor. start_sensing,
+    "target": getsensor.start_sensing,
 }
 
 
 CHILD_CONTEXT_DEF["stop_sensing"] = {
     "type": "func",
-    "args": (int, int)
-    "return": dict,
+    "args": None,
+    "return": None,
     "exceptions": "any",
-    "target": getsensor. stop_sensing,
+    "target": getsensor.stop_sensing,
 }
 
 
@@ -192,7 +192,7 @@ CHILD_CONTEXT_DEF["get_sensors"] = {
 CHILD_CONTEXT_DEF["get_sensors_accuracy"] = {
     "type": "func",
     "args": None,
-    "return": dict,
+    "return": int,
     "exceptions": "any",
     "target": getsensor.get_sensors_accuracy,
 }
@@ -211,7 +211,7 @@ CHILD_CONTEXT_DEF["get_light"] = {
 CHILD_CONTEXT_DEF["get_acceleration"] = {
     "type": "func",
     "args": None,
-    "return": dict,
+    "return": list,
     "exceptions": "any",
     "target": getsensor.get_acceleration,
 }
@@ -221,7 +221,7 @@ CHILD_CONTEXT_DEF["get_acceleration"] = {
 CHILD_CONTEXT_DEF["get_magnetic_field"] = {
     "type": "func",
     "args": None,
-    "return": dict,
+    "return": list,
     "exceptions": "any",
     "target": getsensor.get_magnetic_field,
 }
@@ -230,7 +230,7 @@ CHILD_CONTEXT_DEF["get_magnetic_field"] = {
 CHILD_CONTEXT_DEF["get_orientation"] = {
     "type": "func",
     "args": None,
-    "return": dict,
+    "return": list,
     "exceptions": "any",
     "target": getsensor.get_orientation,
 }
