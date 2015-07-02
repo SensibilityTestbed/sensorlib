@@ -26,6 +26,15 @@ CHILD_CONTEXT_DEF["get_lastknown_location"] = {
 }
 
 
+CHILD_CONTEXT_DEF["get_geolocation"] = {
+    "type": "func",
+    "args": (double, double, int),
+    "return": list,
+    "exceptions": "any",
+    "target": getsensor.get_geolocation,
+}
+
+
 CHILD_CONTEXT_DEF["is_wifi_enabled"] = {
     "type": "func",
     "args": None,
