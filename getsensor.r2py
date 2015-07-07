@@ -161,8 +161,8 @@ def get_geolocation(latitude, longitude, max_results):
     is converted to ASCII using unicode_scrubber.
 
   <Arguments>
-    latitude (double): latitude of a location;
-    longitude (double): longitude of a location;
+    latitude (float): latitude of a location;
+    longitude (float): longitude of a location;
     max_results (Integer): maximum number of results (normally =1).
 
   <Exceptions>

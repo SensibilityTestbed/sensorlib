@@ -28,7 +28,7 @@ CHILD_CONTEXT_DEF["get_lastknown_location"] = {
 
 CHILD_CONTEXT_DEF["get_geolocation"] = {
     "type": "func",
-    "args": (double, double, int),
+    "args": (float, float, int),
     "return": list,
     "exceptions": "any",
     "target": getsensor.get_geolocation,
