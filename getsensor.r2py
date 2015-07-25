@@ -38,264 +38,6 @@ class SIMNotFoundException(RepyException):
   """
   pass
 
-##################################################
-############## location interface  ###############
-##################################################
-
-def get_location():
-  """
-  <Purpose>
-    Get original location data from GPS or network or passive. Calls 
-    sensorlib.request_data(sensor_socket, 'readLocation', []). The location
-    information is returned as a dict, which is converted to ASCII 
-    using unicode_scrubber.
-
-  <Arguments>
-    None
-
-  <Exceptions>
-    LocationNotFoundException (descends from RepyException) when no location 
-    information is found. 
-
-  <Side Effects>
-    When LocationNotFoundException is raised, the user of this method needs 
-    to try several times. If this still fails, then should try 
-    get_lastknown_location().
-
-  <Resource Consumption>
-    GPS or network location lookup. 
-
-  <Returns>
-    location as a dict, such as {'bearing': 0, 'altitude': 0, 
-    'time': x, 'longitude': x, 'provider': 'network', 'latitude': x, 
-    'speed': 0, 'accuracy': x}.
-  
-  """
-
-  # start the locating process 
-  sensorlib.request_data(sensor_socket, 'startLocating', [])
-
-  # try to read current location
-  # note: readLocation call can timeout, or not responsive
-  location_data = sensorlib.request_data(sensor_socket, 'readLocation', []) 
-
-  # stop the locating process 
-  sensorlib.request_data(sensor_socket, 'stopLocating', []) 
-
-  if not location_data:
-    raise LocationNotFoundException    
-  assert len(location_data.keys()) == 1   # should return at only one provider
-
-  # take the first key (because only one provider)
-  provider = location_data.keys()[0]
-  location = location_data[provider]
-
-  # convert unicode format (u'longitude') to ASCII (longitude)
-  # because Repy does not allow Unicode
-  location = unicode_scrubber.scrub(location)
-  return location
-
-
-def get_lastknown_location():
-  """
-  <Purpose>
-  Get original _last-known_ location data from GPS/network/passive. Calls 
-  sensorlib.request_data(sensor_socket, 'getLastKnownLocation', []). The 
-  location information is returned as a dict, which is converted to ASCII 
-  using unicode_scrubber.
-
-  <Arguments>
-  None
-
-  <Exceptions>
-  LocationNotFoundException (descends from RepyException) when the returned
-  location information is {'passive': None, 'network': None, 'gps': None}. 
-
-  <Side Effects>
-  None.
-
-  <Resource Consumption>
-  Lookup cached location information on the device. 
-
-  <Returns>
-  location as a dict with three keys: passive, network, and gps. Each key 
-  value is a dict in the same format as the value returned by get_location().
-  For example, {'passive': {'bearing': 0, 'altitude': 0, 'time': x, 
-  'longitude': x, 'provider': 'network', 'latitude': s, 'speed': 0, 
-  'accuracy': x}, 'network': {'bearing': 0, 'altitude': 0, 'time': x, 
-  'longitude': x, 'provider': 'network', 'latitude': x, 'speed': 0, 
-  'accuracy': x}, 'gps': None}
-
-  """
-
-  # start the locating process 
-  sensorlib.request_data(sensor_socket, 'startLocating', [])
-
-  # try to read the cached location
-  location_data = sensorlib.request_data(sensor_socket, 'getLastKnownLocation', []) 
-
-  # stop the locating process 
-  sensorlib.request_data(sensor_socket, 'stopLocating', []) 
-  assert len(location_data.keys()) >= 1   # should return at least one provider
-
-  # check if location_data is {'passive': None, 'network': None, 'gps': None}
-  for i in range(len(location_data.keys())):
-    provider = location_data.keys()[i]
-    location = location_data[provider]
-    if location != None:
-      break
-  else:
-    raise LocationNotFoundException
-
-  # convert unicode format (u'longitude') to ASCII (longitude)
-  location = unicode_scrubber.scrub(location_data)
-  return location
-
-
-def get_geolocation(latitude, longitude, max_results):
-  """
-  <Purpose>
-    Obtain a list of addresses for the given latitude and longitude. Calls 
-    sensorlib.request_data(sensor_socket, 'geocode', [latitude, longitude, 
-    max_results]). The addresses information is returned as a dict, which 
-    is converted to ASCII using unicode_scrubber.
-
-  <Arguments>
-    latitude (float): latitude of a location;
-    longitude (float): longitude of a location;
-    max_results (Integer): maximum number of results (normally =1).
-
-  <Exceptions>
-    None. 
-
-  <Side Effects>
-    None.
-
-  <Resource Consumption>
-    Geolocation lookup. 
-
-  <Returns>
-    Geolocation (address) as a list, such as [{'thoroughfare': 'Some 
-    Street', 'locality': u'Some Town', 'sub_admin_area': 'Some Borough',
-    'admin_area': 'Some City', 'feature_name': 'House Numbers', 
-    'country_code': 'GB', 'country_name': 'United Kingdom', 
-    'postal_code': 'ST1 1'}] .
-  
-  """
-
-  address = sensorlib.request_data(sensor_socket, 'geocode', 
-                                   [latitude, longitude, max_results])
-  return unicode_scrubber.scrub(address)
-
-  
-
-##################################################
-############## WiFi interface  ###################
-##################################################
-
-def is_wifi_enabled():
-  """
-  <Purpose>
-  Return if WiFi is enabled on this device (True/False). 
-
-  <Arguments>
-  None
-
-  <Exceptions>
-  None. 
-
-  <Side Effects>
-  None.
-
-  <Resource Consumption>
-  Lookup if WiFi is enabled on the device. 
-
-  <Returns>
-  A boolean vaiable indicating if WiFi is enabled on the device. 
-  
-  """
-
-  # True or False
-  return sensorlib.request_data(sensor_socket, 'checkWifiState', [])
-
-
-def get_wifi_connection_info():
-  """
-  <Purpose>
-  Return information about the WiFi network currently connected to. Calls 
-  sensorlib.request_data(sensor_socket, 'wifiGetConnectionInfo', []). 
-
-  <Arguments>
-  None
-
-  <Exceptions>
-  None. 
-
-  <Side Effects>
-  None.
-
-  <Resource Consumption>
-  Lookup WiFi connection information on the device. 
-
-  <Returns>
-  wifi_conn as a dict, and is returned as a dict of this format:
-  {
-    "ssid": network SSID (string),
-    "bssid": network BSSID, i.e. MAC address (string),
-    "rssi": received signal strength in dBm (negative int),
-    "supplicant_state": current WPA association state (string),
-    "link_speed": link speed in MBps (int),
-    "mac_address": this device's WiFi interface MAC (string),
-    XXX "ip_address": this device's IP address (XXX int, byte quadruples reversed!),
-    XXX "network_id": XXX (int),
-    "hidden_ssid": True if the SSID is not broadcast (bool)
-  }
-  """
-
-  wifi_conn = sensorlib.request_data(sensor_socket, 'wifiGetConnectionInfo', [])
-
-  # convert unicode format to ASCII
-  return unicode_scrubber.scrub(wifi_conn)
-
-
-def do_wifi_scan():
-  """
-  <Purpose>
-  Return WiFi connection info on this device. Calls 
-  sensorlib.request_data(sensor_socket, 'wifiGetScanResults', []).
-
-  <Arguments>
-  None
-
-  <Exceptions>
-  None. 
-
-  <Side Effects>
-  None.
-
-  <Resource Consumption>
-  Scan the WiFi network from the device. 
-
-  <Returns>
-  WiFi scan results wifi_data as a HUGE dict of this format, 
-  with one dict for each network found:
-  {
-    "ssid": network SSID (string),
-    "bssid": network BSSID, i.e. MAC address (string),
-    "frequency": frequency in MHz (int),
-    "level": received signal strength in dBm (negative int),
-    "capabilities": security features supported by the network (string)
-  }
-
-  """
-
-  sensorlib.request_data(sensor_socket, 'wifiStartScan', []) 
-  wifi_data = sensorlib.request_data(sensor_socket, 'wifiGetScanResults', [])
-  
-  # we do not need to stop scan (it stops itself after scan is done)
-  # convert unicode format to ASCII
-  return unicode_scrubber.scrub(wifi_data)
-
 
 ##################################################
 ############## battery interface  ################
@@ -643,6 +385,158 @@ def get_cellular_signal_strengths():
 
 
 ##################################################
+############## location interface  ###############
+##################################################
+
+def get_location():
+  """
+  <Purpose>
+    Get original location data from GPS or network or passive. Calls 
+    sensorlib.request_data(sensor_socket, 'readLocation', []). The location
+    information is returned as a dict, which is converted to ASCII 
+    using unicode_scrubber.
+
+  <Arguments>
+    None
+
+  <Exceptions>
+    LocationNotFoundException (descends from RepyException) when no location 
+    information is found. 
+
+  <Side Effects>
+    When LocationNotFoundException is raised, the user of this method needs 
+    to try several times. If this still fails, then should try 
+    get_lastknown_location().
+
+  <Resource Consumption>
+    GPS or network location lookup. 
+
+  <Returns>
+    location as a dict, such as {'bearing': 0, 'altitude': 0, 
+    'time': x, 'longitude': x, 'provider': 'network', 'latitude': x, 
+    'speed': 0, 'accuracy': x}.
+  
+  """
+
+  # start the locating process 
+  sensorlib.request_data(sensor_socket, 'startLocating', [])
+
+  # try to read current location
+  # note: readLocation call can timeout, or not responsive
+  location_data = sensorlib.request_data(sensor_socket, 'readLocation', []) 
+
+  # stop the locating process 
+  sensorlib.request_data(sensor_socket, 'stopLocating', []) 
+
+  if not location_data:
+    raise LocationNotFoundException    
+  assert len(location_data.keys()) == 1   # should return at only one provider
+
+  # take the first key (because only one provider)
+  provider = location_data.keys()[0]
+  location = location_data[provider]
+
+  # convert unicode format (u'longitude') to ASCII (longitude)
+  # because Repy does not allow Unicode
+  location = unicode_scrubber.scrub(location)
+  return location
+
+
+def get_lastknown_location():
+  """
+  <Purpose>
+  Get original _last-known_ location data from GPS/network/passive. Calls 
+  sensorlib.request_data(sensor_socket, 'getLastKnownLocation', []). The 
+  location information is returned as a dict, which is converted to ASCII 
+  using unicode_scrubber.
+
+  <Arguments>
+  None
+
+  <Exceptions>
+  LocationNotFoundException (descends from RepyException) when the returned
+  location information is {'passive': None, 'network': None, 'gps': None}. 
+
+  <Side Effects>
+  None.
+
+  <Resource Consumption>
+  Lookup cached location information on the device. 
+
+  <Returns>
+  location as a dict with three keys: passive, network, and gps. Each key 
+  value is a dict in the same format as the value returned by get_location().
+  For example, {'passive': {'bearing': 0, 'altitude': 0, 'time': x, 
+  'longitude': x, 'provider': 'network', 'latitude': s, 'speed': 0, 
+  'accuracy': x}, 'network': {'bearing': 0, 'altitude': 0, 'time': x, 
+  'longitude': x, 'provider': 'network', 'latitude': x, 'speed': 0, 
+  'accuracy': x}, 'gps': None}
+
+  """
+
+  # start the locating process 
+  sensorlib.request_data(sensor_socket, 'startLocating', [])
+
+  # try to read the cached location
+  location_data = sensorlib.request_data(sensor_socket, 'getLastKnownLocation', []) 
+
+  # stop the locating process 
+  sensorlib.request_data(sensor_socket, 'stopLocating', []) 
+  assert len(location_data.keys()) >= 1   # should return at least one provider
+
+  # check if location_data is {'passive': None, 'network': None, 'gps': None}
+  for i in range(len(location_data.keys())):
+    provider = location_data.keys()[i]
+    location = location_data[provider]
+    if location != None:
+      break
+  else:
+    raise LocationNotFoundException
+
+  # convert unicode format (u'longitude') to ASCII (longitude)
+  location = unicode_scrubber.scrub(location_data)
+  return location
+
+
+def get_geolocation(latitude, longitude, max_results):
+  """
+  <Purpose>
+    Obtain a list of addresses for the given latitude and longitude. Calls 
+    sensorlib.request_data(sensor_socket, 'geocode', [latitude, longitude, 
+    max_results]). The addresses information is returned as a dict, which 
+    is converted to ASCII using unicode_scrubber.
+
+  <Arguments>
+    latitude (float): latitude of a location;
+    longitude (float): longitude of a location;
+    max_results (Integer): maximum number of results (normally =1).
+
+  <Exceptions>
+    None. 
+
+  <Side Effects>
+    None.
+
+  <Resource Consumption>
+    Geolocation lookup. 
+
+  <Returns>
+    Geolocation (address) as a list, such as [{'thoroughfare': 'Some 
+    Street', 'locality': u'Some Town', 'sub_admin_area': 'Some Borough',
+    'admin_area': 'Some City', 'feature_name': 'House Numbers', 
+    'country_code': 'GB', 'country_name': 'United Kingdom', 
+    'postal_code': 'ST1 1'}] .
+  
+  """
+
+  address = sensorlib.request_data(sensor_socket, 'geocode', 
+                                   [latitude, longitude, max_results])
+  return unicode_scrubber.scrub(address)
+
+  
+
+
+##################################################
 ############## settings interface  ###############
 ##################################################
 
@@ -885,7 +779,7 @@ def get_sensors():
 
   sensors = sensorlib.request_data(sensor_socket, 'readSensors', [])
   return unicode_scrubber.scrub(sensors)
-  
+
 
 def get_sensors_accuracy():
   """
@@ -1021,6 +915,114 @@ def get_orientation():
     [-0.17154279351234436, 0.080450139939785, -0.03844258934259415].
   """
 
-  return sensorlib.request_data(sensor_socket, 
-                                'sensorsReadOrientation', [])
+  return sensorlib.request_data(sensor_socket,
+    'sensorsReadOrientation', [])
 
+
+
+##################################################
+############## WiFi interface  ###################
+##################################################
+
+def is_wifi_enabled():
+  """
+  <Purpose>
+  Return if WiFi is enabled on this device (True/False). 
+
+  <Arguments>
+  None
+
+  <Exceptions>
+  None. 
+
+  <Side Effects>
+  None.
+
+  <Resource Consumption>
+  Lookup if WiFi is enabled on the device. 
+
+  <Returns>
+  A boolean vaiable indicating if WiFi is enabled on the device. 
+  
+  """
+
+  # True or False
+  return sensorlib.request_data(sensor_socket, 'checkWifiState', [])
+
+
+def get_wifi_connection_info():
+  """
+  <Purpose>
+  Return information about the WiFi network currently connected to. Calls 
+  sensorlib.request_data(sensor_socket, 'wifiGetConnectionInfo', []). 
+
+  <Arguments>
+  None
+
+  <Exceptions>
+  None. 
+
+  <Side Effects>
+  None.
+
+  <Resource Consumption>
+  Lookup WiFi connection information on the device. 
+
+  <Returns>
+  wifi_conn as a dict, and is returned as a dict of this format:
+  {
+    "ssid": network SSID (string),
+    "bssid": network BSSID, i.e. MAC address (string),
+    "rssi": received signal strength in dBm (negative int),
+    "supplicant_state": current WPA association state (string),
+    "link_speed": link speed in MBps (int),
+    "mac_address": this device's WiFi interface MAC (string),
+    XXX "ip_address": this device's IP address (XXX int, byte quadruples reversed!),
+    XXX "network_id": XXX (int),
+    "hidden_ssid": True if the SSID is not broadcast (bool)
+  }
+  """
+
+  wifi_conn = sensorlib.request_data(sensor_socket, 'wifiGetConnectionInfo', [])
+
+  # convert unicode format to ASCII
+  return unicode_scrubber.scrub(wifi_conn)
+
+
+def do_wifi_scan():
+  """
+  <Purpose>
+  Return WiFi connection info on this device. Calls 
+  sensorlib.request_data(sensor_socket, 'wifiGetScanResults', []).
+
+  <Arguments>
+  None
+
+  <Exceptions>
+  None. 
+
+  <Side Effects>
+  None.
+
+  <Resource Consumption>
+  Scan the WiFi network from the device. 
+
+  <Returns>
+  WiFi scan results wifi_data as a HUGE dict of this format, 
+  with one dict for each network found:
+  {
+    "ssid": network SSID (string),
+    "bssid": network BSSID, i.e. MAC address (string),
+    "frequency": frequency in MHz (int),
+    "level": received signal strength in dBm (negative int),
+    "capabilities": security features supported by the network (string)
+  }
+
+  """
+
+  sensorlib.request_data(sensor_socket, 'wifiStartScan', []) 
+  wifi_data = sensorlib.request_data(sensor_socket, 'wifiGetScanResults', [])
+  
+  # we do not need to stop scan (it stops itself after scan is done)
+  # convert unicode format to ASCII
+  return unicode_scrubber.scrub(wifi_data)
