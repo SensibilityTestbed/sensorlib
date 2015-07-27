@@ -535,6 +535,111 @@ def get_geolocation(latitude, longitude, max_results):
 
   
 
+##################################################
+############### media interface  #################
+##################################################
+
+
+def microphone_record(filename, duration):
+  """
+  <Purpose>
+    Records audio from the microphone and saves it as filename. Calls sensorlib.
+    request_data(sensor_socket, 'recorderStartMicrophone', [filename]).
+
+  <Arguments>
+    filename (string): the audio file name that will be saved as (e.g., record.mp4);
+    duration (Integer): the duration to record the audio.
+
+  <Exceptions>
+    None. 
+
+  <Side Effects>
+    None.
+
+  <Resource Consumption>
+    Record audio and save as a file on the device. 
+
+  <Returns>
+    None.
+  """
+
+  filepath = '/mnt/sdcard/Android/data/com.sensibility_testbed/files/sl4a/seattle/seattle_repy/v1/'
+  targetpath = filepath + filename
+  
+  sensorlib.request_data(sensor_socket, 'recorderStartMicrophone', [targetpath])
+  sleep(duration)
+  
+  sensorlib.request_data(sensor_socket, 'recorderStop', [])
+
+
+
+
+def is_media_playing():
+  """
+  <Purpose>
+  Return if media file is playing. (True/False). Calls sensorlib.
+  request_data(sensor_socket, 'mediaIsPlaying', [])
+
+  <Arguments>
+  None.
+
+  <Exceptions>
+  None. 
+
+  <Side Effects>
+  None.
+
+  <Resource Consumption>
+  Lookup if media file is playing. 
+
+  <Returns>
+  A boolean vaiable indicating if a media file is playing on the device. 
+  
+  """
+
+  # True or False
+  return sensorlib.request_data(sensor_socket, 'mediaIsPlaying', [])
+
+
+
+def get_media_play_info():
+  """
+  <Purpose>
+  Return information on current media. Calls sensorlib.request_data(
+  sensor_socket, 'mediaPlayInfo', [])
+
+  <Arguments>
+  None.
+
+  <Exceptions>
+  None. 
+
+  <Side Effects>
+  None.
+
+  <Resource Consumption>
+  Lookup media play information. 
+
+  <Returns>
+  media_play_info as a dict. 
+
+  If no media file is loaded, the result is {'loaded': False, 'tag': 'default'}. 
+
+  If there is a media file being played, the result is {'url': filepath, 
+  'looping': False, 'tag': 'default', 'loaded': True, 'duration': 17100, 
+  'position': 100, 'isplaying': True}. 
+  
+  If the media file is finished playing, the result is {'url': filepath, 
+  'looping': False, 'tag': 'default', 'loaded': True, 'duration': 17100, 
+  'position': 17020, 'isplaying': False}
+  
+  """
+
+  # True or False
+  media_play_info = sensorlib.request_data(sensor_socket, 'mediaPlayInfo', [])
+  return unicode_scrubber.scrub(media_play_info)
+
+
 
 ##################################################
 ############## settings interface  ###############
