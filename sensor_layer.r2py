@@ -113,7 +113,7 @@ CHILD_CONTEXT_DEF["get_geolocation"] = {
 
 CHILD_CONTEXT_DEF["microphone_record"] = {
     "type": "func",
-    "args": (string, int),
+    "args": (str, int),
     "return": None,
     "exceptions": "any",
     "target": getsensor.microphone_record,
