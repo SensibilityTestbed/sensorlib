@@ -949,7 +949,7 @@ def get_acceleration():
     None. 
 
   <Exceptions>
-    None. 
+    ValueError. 
 
   <Side Effects>
     None.
@@ -962,8 +962,12 @@ def get_acceleration():
     e.g., [0.3830723, -0.8036005, 10.036493].
   """
 
-  return sensorlib.request_data(sensor_socket, 
+  try:
+    data = sensorlib.request_data(sensor_socket, 
                                 'sensorsReadAccelerometer', [])
+  except ValueError:
+    log(data)
+    raise ValueError
 
 
 
