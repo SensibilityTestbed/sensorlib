@@ -1024,6 +1024,64 @@ def get_orientation():
     'sensorsReadOrientation', [])
 
 
+##################################################
+########### text to speech interface  ############
+##################################################
+
+
+def is_tts_speaking():
+  """
+  <Purpose>
+  Return if text to speech (tts) is currently in progress (True/False). Calls 
+  sensorlib.request_data(sensor_socket, 'ttsIsSpeaking', []).
+
+  <Arguments>
+  None
+
+  <Exceptions>
+  None. 
+
+  <Side Effects>
+  None.
+
+  <Resource Consumption>
+  Lookup if tts is currently in progress. 
+
+  <Returns>
+  A boolean vaiable indicating if tts is currently in progress on the device. 
+  
+  """
+
+  # True or False
+  return sensorlib.request_data(sensor_socket, 'ttsIsSpeaking', [])
+
+
+
+def tts_speak(message):
+  """
+  <Purpose>
+  Speaks the provided message via text to speech (tts). Calls 
+  sensorlib.request_data(sensor_socket, 'ttsSpeak', [message]).
+
+  <Arguments>
+  message (string): the message to speak.
+
+  <Exceptions>
+  None. 
+
+  <Side Effects>
+  None.
+
+  <Resource Consumption>
+  Text to speech speaks the provided message. 
+
+  <Returns>
+  None. 
+  
+  """
+
+  sensorlib.request_data(sensor_socket, 'ttsSpeak', [message])
+
 
 ##################################################
 ############## WiFi interface  ###################
@@ -1032,7 +1090,8 @@ def get_orientation():
 def is_wifi_enabled():
   """
   <Purpose>
-  Return if WiFi is enabled on this device (True/False). 
+  Return if WiFi is enabled on this device (True/False). Calls 
+  sensorlib.request_data(sensor_socket, 'checkWifiState', []).
 
   <Arguments>
   None

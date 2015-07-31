@@ -250,6 +250,23 @@ CHILD_CONTEXT_DEF["get_orientation"] = {
 }
 
 
+CHILD_CONTEXT_DEF["is_tts_speaking"] = {
+    "type": "func",
+    "args": None,
+    "return": bool,
+    "exceptions": "any",
+    "target": getsensor.is_tts_speaking,
+}
+
+
+CHILD_CONTEXT_DEF["tts_speak"] = {
+    "type": "func",
+    "args": str,
+    "return": None,
+    "exceptions": "any",
+    "target": getsensor.tts_speak,
+}
+
 
 CHILD_CONTEXT_DEF["is_wifi_enabled"] = {
     "type": "func",
