@@ -1,144 +1,148 @@
-httpretrieve = dy_import_module("httpretrieve.r2py")
-math = dy_import_module("math.r2py")
-librepyfile = dy_import_module("librepyfile.r2py")
+"""
+A security layer for the functions get_location() and get_lastknown_location()
+defined in getsensor.r2py. This program blurs the latitude/longitude
+coordinates, received from the location sensors of an Android device,
+to the geographic center of approximately the nearest city.
 
-statefilename = "states.txt"        # Database of states
-countryfilename = "countries.txt"   # Database of countries
+The blurring is done using a database lookup method. The database,
+located at http://sensibilityclearinghouse.poly.edu/data/quad/, contains
+a list of cities and their geodata, divided by their latitude/longitude
+coordinates into cells. Each cell is a separate file in the database,
+whose name is derived as "ceiling(latitude)_ceiling(longitude).txt".
+For example, if a location has coordinates (40.78343, -73.96625), it
+will be mapped to the file with name "41_-73.txt".
 
-
-# Downloads the required file from the server
-def get_file_from_server(filename):
-
-  if filename not in listfiles(): # In case it already exists
-    if filename not in [statefilename, countryfilename]:
-      url = "http://sensibilityclearinghouse.poly.edu/data/quad/" + filename
-    else:
-      url = "http://sensibilityclearinghouse.poly.edu/data/" + filename
-    httpretrieve.httpretrieve_save_file(url, filename)
-
-
-# Returns a dictionary containing information about the point closest to
-# a given lat/lng pair, from the database.
-# {"city": closest_city, "statecode": closest_state_code, "countrycode":
-# closest_country_code, "coordinates": closest_point}
-def find_closest_point(lat, lng):
-
-  # Find the database file with coordinates closest to the given lat/lng pair
-  filename = get_filename(lat, lng)
-	# Get the list of coordinates from that file
-  listofpoints = load_lat_lng_from_file(filename)
-
-  min_dist = 9999
-  point1 = (lat, lng)
-
-  for city in listofpoints.keys():
-    data = listofpoints[city]
-    point2 = (data[0], data[1])
-    dist = find_distance(point1, point2)
-    if dist < min_dist:
-      min_dist = dist
-      closest_point = point2
-      closest_city = city
-      closest_state_code = data[3]
-      closest_country_code = data[2]
-
-  closest = {"city": closest_city, "statecode": closest_state_code, "countrycode": closest_country_code, "coordinates": closest_point}
-
-  return closest
+Usage:
+  start dylink.r2py encasementlib.r2py sensor_layer.r2py \
+    blur_location2city.r2py user-program.r2py
+"""
 
 
-# Returns the filename in the database with coordinates closest to the given lat/lng pair
-def get_filename(lat, lng):
 
-  # get ceiling as x/y index
-  x = int(math.math_ceil(lat))
-  y = int(math.math_ceil(lng))
-  filename = str(x) + '_' + str(y) + '.txt'
-  return filename
+location_blur_helper = dy_import_module("location_blur_helper.r2py")
 
 
-# Returns a dictionary containing all the cities in the given file, along with
-# their corresponding data
-# {city1: [lat, lng, country_code, state_code], city2: [lat, lng, country_code,
-# state_code], ...}
-def load_lat_lng_from_file(filename):
 
-  get_file_from_server(filename)
-  listofpoints = {}
-  fileobj = librepyfile.open(filename, "r")
+def load_city_geodata(lat, lon):
+  """
+  Loads all cities and corresponding geodata from the given file
+  into a dictionary.
 
-  while True:
-    try:
-      line = fileobj.next().strip()
-    except StopIteration:
-      break
-    else:
-      line = line.split("\t")
-      city_name = line[0]
-      lat = line[1]
-      lng = line[2]
-      country_code = line[3]
-      state_code = line[4]
-      listofpoints[city_name] = [lat, lng, country_code, state_code]
-  fileobj.close()
-  return listofpoints
+  Below is an example of a line from the file
+  http://sensibilityclearinghouse.poly.edu/data/quad/41_-73.txt,
+  with fields - city name, latitude, longitude, country code, state
+  code:
+  Manhattan    40.78343    -73.96625    US    NY
+
+  The dictionary that is returned has the format:
+  {
+    city1: {"latitude": latitude, "longitude": longitude},
+    city2: {"latitude": latitude, "longitude": longitude},
+    ...
+  }
+
+  """
+  # Determine which file to download from the database.
+  filename = location_blur_helper.get_database_filename(lat, lon)
+  # Download the file from the city database.
+  location_blur_helper.get_city_file_from_server(filename)
+  # Obtain the list of cities and their geodata from the file.
+  cities_geodata = location_blur_helper.read_data_from_file(filename)
+
+  city_dict = {}
+
+  for line in cities_geodata:
+    # Ignore the empty line at the end of the file.
+    if line == "":
+      continue
+    city_geodata_record = line.split("\t")
+    city_name = city_geodata_record[0]
+    city_dict[city_name] = {
+      "latitude": float(city_geodata_record[1]),
+      "longitude": float(city_geodata_record[2])
+    }
+
+  return city_dict
 
 
-# Returns the distance between two lat/lng points
-def find_distance(p1, p2):
 
-  (lat1, lng1) = p1
-  (lat2, lng2) = p2
-  lat2 = float(lat2)
-  lng2 = float(lng2)
-  lat_diff = (lat1-lat2) * (lat1-lat2)
-  lng_diff = (lng1-lng2) * (lng1-lng2)
-  # return squared distance
-  return lat_diff + lng_diff
+def find_closest_city(lat, lon):
+  """
+  Finds the city closest to the given latitude/longitude pair from the
+  dictionary of cities returned by the load_city_geodata() function,
+  and returns that city's geodata in the format:
+  {
+    "city_name": city name (string),
+    "latitude": latitude of the center of the city (float)
+    "longitude": longitude of the center of the city (float)
+  }
+
+  Note: We're looking for the closest city within the same cell as the
+  given latitude/longitude pair. There might be a closer city in the
+  surrounding cells.
+
+  """
+  # Load all cities and corresponding geodata from the file.
+  city_dict = load_city_geodata(lat, lon)
+
+  return location_blur_helper.find_closest_location(lat, lon, city_dict)
 
 
-# To replace get_location()
+
 def get_city_location():
+  """
+  Blurring layer for the get_location() function. It replaces the exact
+  coordinates of the Android device with the coordinates for the
+  geographic center of the nearest city.
 
-  try:
-    location_data = get_location()
-  except Exception: # Not able to use LocationNotFoundException here
-    raise Exception
+  """
+  location_data = get_location()
 
-  latitude = location_data["latitude"]
-  longitude = location_data["longitude"]
+  closest_city = find_closest_city(location_data["latitude"],
+      location_data["longitude"])
 
-  closest = find_closest_point(latitude, longitude)
-
-  location_data["latitude"] = closest["coordinates"][0]
-  location_data["longitude"] = closest["coordinates"][1]
+  location_data["latitude"] = closest_city["latitude"]
+  location_data["longitude"] = closest_city["longitude"]
 
   return location_data
 
 
-# To replace get_lastknown_location()
+
 def get_city_lastknown_location():
+  """
+  Blurring layer for the get_lastknown_location() function. It replaces
+  the last-known coordinates of the Android device with the coordinates
+  for the geographic center of the nearest city.
+  """
+  location_data = get_lastknown_location()
 
-  try:
-    location_data = get_lastknown_location()
-  except Exception: # Not able to use LocationNotFoundException here
-    raise Exception
+  # Blur the coordinates of the first non-empty location data.
+  for location_provider, provider_location_data in location_data.items():
+    # Skip this provider's data if it doesn't contain a previous
+    # location.
+    if provider_location_data is None:
+      continue
 
-  # Get the location from the the provider
-  for i in range(len(location_data.keys())):
-    provider = location_data.keys()[i]
-    location = location_data[provider]
-    if location != None:
-      latitude = location["latitude"]
-      longitude = location["longitude"]
+    closest_city = find_closest_city(provider_location_data["latitude"],
+        provider_location_data["longitude"])
 
-      closest = find_closest_point(latitude, longitude)
-      location_data[provider]["latitude"] = closest["coordinates"][0]
-      location_data[provider]["longitude"] = closest["coordinates"][1]
+    break
+
+  # Copy the blurred coordinates into all providers' location data.
+  for location_provider, provider_location_data in location_data.items():
+    # Skip blurring this provider's data if it doesn't contain a previous
+    # location.
+    if provider_location_data is None:
+      continue
+
+    location_data[location_provider]["latitude"] = closest_city["latitude"]
+    location_data[location_provider]["longitude"] = closest_city["longitude"]
 
   return location_data
 
 
+
+# Mapping our blurring function get_city_location to get_location.
 CHILD_CONTEXT_DEF["get_location"] = {
     "type": "func",
     "args": None,
@@ -148,6 +152,8 @@ CHILD_CONTEXT_DEF["get_location"] = {
 }
 
 
+# Mapping our blurring function get_city_lastknown_location to
+# get_lastknown_location.
 CHILD_CONTEXT_DEF["get_lastknown_location"] = {
     "type": "func",
     "args": None,
@@ -156,4 +162,6 @@ CHILD_CONTEXT_DEF["get_lastknown_location"] = {
     "target": get_city_lastknown_location,
 }
 
+
+# Dispatch.
 secure_dispatch_module()
