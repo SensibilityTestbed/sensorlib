@@ -261,7 +261,7 @@ CHILD_CONTEXT_DEF["is_tts_speaking"] = {
 
 CHILD_CONTEXT_DEF["tts_speak"] = {
     "type": "func",
-    "args": str,
+    "args": (str,),
     "return": None,
     "exceptions": "any",
     "target": getsensor.tts_speak,
