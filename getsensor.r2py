@@ -965,9 +965,8 @@ def get_acceleration():
   try:
     data = sensorlib.request_data(sensor_socket, 
                                 'sensorsReadAccelerometer', [])
-  except ValueError:
-    log(data)
-    raise ValueError
+  except ValueError, e:
+    raise ValueError(str( e ) + " Data was '" + str(data) + "'")
 
   return data
 
