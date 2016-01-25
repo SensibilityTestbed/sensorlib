@@ -1,0 +1,3 @@
+https://github.com/SeattleTestbed/common ../DEPENDENCIES/common
+https://github.com/SensibilityTestbed/seattlelib_v2 ../DEPENDENCIES/seattlelib_v2
+
